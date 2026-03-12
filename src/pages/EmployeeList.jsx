@@ -32,14 +32,14 @@ export default function EmployeeList() {
   const debouncedPosition  = useDebounce(filters.position, 400);
 
   const { data, loading, error } = useFetch(
-    () => employeesApi.getAll({
-      email:      debouncedEmail,
-      first_name: debouncedFirstName,
-      last_name:  debouncedLastName,
-      position:   debouncedPosition,
-      page,
-      page_size:  pageSize,
-    }),
+    () => {
+      const params = { page, page_size: pageSize };
+      if (debouncedEmail)     params.email      = debouncedEmail;
+      if (debouncedFirstName) params.first_name  = debouncedFirstName;
+      if (debouncedLastName)  params.last_name   = debouncedLastName;
+      if (debouncedPosition)  params.position    = debouncedPosition;
+      return employeesApi.getAll(params);
+    },
     [debouncedEmail, debouncedFirstName, debouncedLastName, debouncedPosition, page]
   );
 

@@ -32,9 +32,9 @@ api.interceptors.response.use(
       return Promise.reject(err.response?.data ?? err);
     }
 
-    if (original.url?.includes('/login') || original.url?.includes('/refresh')) {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+    // Auth endpointi — ne redirectuj, vrati grešku komponenti da prikaže
+    const authPaths = ['/login', '/refresh', '/activate', '/reset-password', '/forgot-password', '/register'];
+    if (authPaths.some(p => original.url?.includes(p))) {
       return Promise.reject(err.response?.data ?? err);
     }
 

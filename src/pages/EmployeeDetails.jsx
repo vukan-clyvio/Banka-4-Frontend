@@ -11,6 +11,12 @@ import Alert                                   from '../components/ui/Alert';
 import styles                                  from './EmployeeDetails.module.css';
 
 const GENDER_OPTIONS = ['M', 'F'];
+const ALL_PERMISSIONS = [
+  { value: 'employee.view',   label: 'Pregled zaposlenih' },
+  { value: 'employee.create', label: 'Kreiranje zaposlenih' },
+  { value: 'employee.update', label: 'Izmena zaposlenih' },
+  { value: 'employee.delete', label: 'Brisanje zaposlenih' },
+];
 
 export default function EmployeeDetails() {
   const { id }   = useParams();
@@ -44,18 +50,19 @@ export default function EmployeeDetails() {
   }, []);
 
   function startEdit() {
-    const emp = data.data;
+    const emp = data;
     const initial = {
       first_name:    emp.first_name ?? '',
       last_name:     emp.last_name ?? '',
       email:         emp.email ?? '',
       phone_number:  emp.phone_number ?? '',
       address:       emp.address ?? '',
-      date_of_birth: emp.date_of_birth ?? '',
+      date_of_birth: emp.date_of_birth ? emp.date_of_birth.slice(0, 10) : '',
       gender:        emp.gender ?? '',
       active:        emp.active ?? true,
       position_id:   emp.position_id ?? '',
       department:    emp.department ?? '',
+      permissions:   emp.permissions ?? [],
     };
     setForm(initial);
     setOriginalForm(initial);
@@ -74,6 +81,22 @@ export default function EmployeeDetails() {
   function updateField(key, value) {
     setForm(prev => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }));
+  }
+
+  function togglePermission(perm) {
+    setForm(prev => {
+      let perms = prev.permissions.includes(perm)
+        ? prev.permissions.filter(p => p !== perm)
+        : [...prev.permissions, perm];
+
+      // Ako ima create/update/delete, view mora biti uključen
+      const needsView = perms.some(p => p !== 'employee.view');
+      if (needsView && !perms.includes('employee.view')) {
+        perms = [...perms, 'employee.view'];
+      }
+
+      return { ...prev, permissions: perms };
+    });
   }
 
   function validate() {
@@ -97,7 +120,15 @@ export default function EmployeeDetails() {
 
     const diff = {};
     for (const key of Object.keys(form)) {
-      if (form[key] !== originalForm[key]) diff[key] = form[key];
+      if (key === 'permissions') {
+        const sorted = [...form.permissions].sort();
+        const origSorted = [...originalForm.permissions].sort();
+        if (JSON.stringify(sorted) !== JSON.stringify(origSorted)) {
+          diff.permissions = form.permissions;
+        }
+      } else if (form[key] !== originalForm[key]) {
+        diff[key] = key === 'position_id' ? Number(form[key]) : form[key];
+      }
     }
     if (Object.keys(diff).length === 0) {
       setEditMode(false);
@@ -129,9 +160,9 @@ export default function EmployeeDetails() {
 
   if (loading) return <><Navbar /><Spinner /></>;
   if (error)   return <><Navbar /><Alert tip="greska" poruka={error.error ?? 'Greška.'} /></>;
-  if (!data?.data) return <><Navbar /><Alert tip="greska" poruka="Zaposleni nije pronađen." /></>;
+  if (!data) return <><Navbar /><Alert tip="greska" poruka="Zaposleni nije pronađen." /></>;
 
-  const emp = data.data;
+  const emp = data;
 
   return (
     <div ref={pageRef} className={styles.stranica}>
@@ -213,6 +244,28 @@ export default function EmployeeDetails() {
                 </div>
               </div>
 
+              <div className={styles.section}>
+                <div className={styles.sectionTitle}>Permisije</div>
+                <div className={styles.permissionsGrid}>
+                  {ALL_PERMISSIONS.map(p => {
+                    const viewLocked = p.value === 'employee.view'
+                      && form.permissions.some(x => x !== 'employee.view');
+                    return (
+                      <label key={p.value} className={`${styles.permissionItem} ${viewLocked ? styles.permissionLocked : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={form.permissions.includes(p.value)}
+                          onChange={() => togglePermission(p.value)}
+                          disabled={viewLocked}
+                        />
+                        <span className={styles.permissionLabel}>{p.label}</span>
+                        <span className={styles.permissionCode}>{p.value}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className={styles.formActions}>
                 <button type="button" className={styles.btnGhost} onClick={cancelEdit}>Otkaži</button>
                 <button type="submit" disabled={submitting} className={styles.btnPrimary}>
@@ -230,7 +283,7 @@ export default function EmployeeDetails() {
                   <ViewField label="Email" value={emp.email} />
                   <ViewField label="Telefon" value={emp.phone_number || '—'} />
                   <ViewField label="Adresa" value={emp.address || '—'} />
-                  <ViewField label="Datum rođenja" value={emp.date_of_birth || '—'} />
+                  <ViewField label="Datum rođenja" value={emp.date_of_birth ? emp.date_of_birth.slice(0, 10) : '—'} />
                   <ViewField label="Pol" value={emp.gender === 'M' ? 'Muški' : emp.gender === 'F' ? 'Ženski' : '—'} />
                   <div>
                     <div className={styles.fieldLabel}>Status</div>
@@ -246,6 +299,22 @@ export default function EmployeeDetails() {
                 <div className={styles.fieldGrid}>
                   <ViewField label="ID Pozicije" value={emp.position_id} />
                   <ViewField label="Departman" value={emp.department} />
+                </div>
+              </div>
+
+              <div className={styles.section}>
+                <div className={styles.sectionTitle}>Permisije</div>
+                <div className={styles.permissionsTags}>
+                  {emp.permissions?.length > 0 ? (
+                    emp.permissions.map(p => {
+                      const info = ALL_PERMISSIONS.find(x => x.value === p);
+                      return (
+                        <span key={p} className={styles.permissionTag}>{info?.label ?? p}</span>
+                      );
+                    })
+                  ) : (
+                    <span className={styles.noPermissions}>Nema dodeljenih permisija</span>
+                  )}
                 </div>
               </div>
             </>

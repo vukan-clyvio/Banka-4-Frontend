@@ -8,6 +8,12 @@ import Alert                                  from '../components/ui/Alert';
 import styles                                 from './NewEmployee.module.css';
 
 const GENDER_OPTIONS = ['M', 'F'];
+const ALL_PERMISSIONS = [
+  { value: 'employee.view',   label: 'Pregled zaposlenih' },
+  { value: 'employee.create', label: 'Kreiranje zaposlenih' },
+  { value: 'employee.update', label: 'Izmena zaposlenih' },
+  { value: 'employee.delete', label: 'Brisanje zaposlenih' },
+];
 
 export default function NewEmployee() {
   const navigate = useNavigate();
@@ -25,6 +31,7 @@ export default function NewEmployee() {
     position_id:   '',
     department:    '',
     username:      '',
+    permissions:   [],
   });
 
   const [errors,     setErrors]     = useState({});
@@ -64,6 +71,22 @@ export default function NewEmployee() {
     });
 
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
+  }
+
+  function togglePermission(perm) {
+    setForm(prev => {
+      let perms = prev.permissions.includes(perm)
+        ? prev.permissions.filter(p => p !== perm)
+        : [...prev.permissions, perm];
+
+      // Ako ima create/update/delete, view mora biti uključen
+      const needsView = perms.some(p => p !== 'employee.view');
+      if (needsView && !perms.includes('employee.view')) {
+        perms = [...perms, 'employee.view'];
+      }
+
+      return { ...prev, permissions: perms };
+    });
   }
 
   function validate() {
@@ -284,6 +307,36 @@ export default function NewEmployee() {
                     className={form.department ? styles.hasValue : ''}
                   />
                 </Polje>
+              </div>
+            </div>
+
+            <div className={styles.formSection}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionIcon}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" strokeWidth="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
+                <span className={styles.sectionTitle}>Permisije</span>
+              </div>
+
+              <div className={styles.permissionsGrid}>
+                {ALL_PERMISSIONS.map(p => {
+                  const viewLocked = p.value === 'employee.view'
+                    && form.permissions.some(x => x !== 'employee.view');
+                  return (
+                    <label key={p.value} className={`${styles.permissionItem} ${viewLocked ? styles.permissionLocked : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={form.permissions.includes(p.value)}
+                        onChange={() => togglePermission(p.value)}
+                        disabled={viewLocked}
+                      />
+                      <span className={styles.permissionLabel}>{p.label}</span>
+                      <span className={styles.permissionCode}>{p.value}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 

@@ -433,6 +433,55 @@
   border-radius: 6px;
 }
 
+.permissionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.permissionItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.permissionItem:hover {
+  border-color: var(--blue);
+  background: #fff;
+}
+
+.permissionItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.permissionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-1);
+}
+
+.permissionLocked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.permissionCode {
+  font-size: 11px;
+  color: var(--tx-3);
+  margin-left: auto;
+  font-family: monospace;
+}
+
 @media (max-width: 900px) {
   .sadrzaj {
     padding: 24px 16px;
@@ -441,6 +490,9 @@
     grid-template-columns: 1fr;
   }
   .fieldGrid2 {
+    grid-template-columns: 1fr;
+  }
+  .permissionsGrid {
     grid-template-columns: 1fr;
   }
 }
