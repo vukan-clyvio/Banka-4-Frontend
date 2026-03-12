@@ -44,9 +44,15 @@ export default function NewEmployee() {
     return () => ctx.revert();
   }, []);
 
+
+
   function updateField(field, value) {
     setForm(prev => {
-      const next = { ...prev, [field]: value };
+      // Ako je polje position_id, pretvori ga u broj, inače ostavi string
+      const finalValue = field === 'position_id' ? (value === '' ? '' : Number(value)) : value;
+
+      const next = { ...prev, [field]: finalValue };
+
       if (field === 'first_name' || field === 'last_name') {
         const f = field === 'first_name' ? value : prev.first_name;
         const l = field === 'last_name'  ? value : prev.last_name;
@@ -56,6 +62,7 @@ export default function NewEmployee() {
       }
       return next;
     });
+
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
   }
 
@@ -77,8 +84,15 @@ export default function NewEmployee() {
     }
 
     setErrors(e);
-    return Object.keys(e).length === 0;
+
+    if (Object.keys(e).length > 0) {
+      console.log("Pronađene greške pri validaciji:", e);
+    }
+
+    return Object.keys(e).length === 0; // Vraća true samo ako je 'e' prazan
   }
+
+
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -86,15 +100,30 @@ export default function NewEmployee() {
 
     setSubmitting(true);
     setApiError(null);
+
     try {
-      await authApi.register(form);
+
+      const formattedDate = form.date_of_birth ? `${form.date_of_birth}T00:00:00Z` : null;
+
+      const payload = {
+        ...form,
+        position_id:   Number(form.position_id),
+        date_of_birth: formattedDate
+      };
+
+      console.log("Šaljem payload u Go backend:", payload);
+
+      await authApi.register(payload);
       navigate('/employees');
     } catch (err) {
-      setApiError(err.error ?? 'Došlo je do greške. Pokušajte ponovo.');
+      console.error("Backend odbio podatke:", err);
+      // Prikazujemo poruku koju je Go vratio (ako postoji)
+      setApiError(err.message || err.error || 'Greška u komunikaciji sa serverom.');
     } finally {
       setSubmitting(false);
     }
   }
+
 
   return (
     <div ref={pageRef} className={styles.stranica}>

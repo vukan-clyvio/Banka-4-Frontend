@@ -20,7 +20,7 @@ export default function EmployeeTable({ employees, onRowClick }) {
         </thead>
         <tbody>
           {employees.map(emp => (
-            <tr key={emp.employee_id} onClick={() => onRowClick(emp.employee_id)}>
+            <tr key={emp.id} onClick={() => onRowClick(emp.employee_id)}>
               <td className={styles.name}>{emp.first_name}</td>
               <td className={styles.name}>{emp.last_name}</td>
               <td className={styles.email}>{emp.email}</td>

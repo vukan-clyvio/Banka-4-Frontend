@@ -16,12 +16,15 @@ function ProtectedRoute({ children }) {
 }
 
 function AdminRoute({ children }) {
+
   const user = useAuthStore(s => s.user);
   if (!user?.is_admin) return <Navigate to="/" replace />;
   return children;
 }
 
 export default function App() {
+  const user = useAuthStore(s => s.user);
+  console.log(user)
   return (
     <BrowserRouter>
       <Routes>
