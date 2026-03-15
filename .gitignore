@@ -1,4 +1,38 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files — NEVER commit secrets
 .env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Editor / tool files
 .claude
+.continue
+.idea
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vite cache
+.vite
+
+# Coverage / test output
+coverage/
+
+# Personal dev notes (optional)
+ARCHITECTURE_NOTES.md
+SPEC_SUMMARY.md
+TASKS.md
