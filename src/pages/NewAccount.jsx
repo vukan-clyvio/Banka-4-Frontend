@@ -152,7 +152,7 @@ export default function NewAccount() {
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();       
+    e.preventDefault();        
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -184,7 +184,8 @@ export default function NewAccount() {
       });
 
       setSuccessMessage('Račun je uspešno kreiran!');
-      setTimeout(() => navigate('/'), 1800);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => navigate('/'), 2500);
 
     } catch (err) {
       setSubmitError(err?.message || err?.error || 'Greška pri kreiranju računa.');

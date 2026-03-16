@@ -18,7 +18,6 @@ const FAKE_EMPLOYEE = {
   position_id:   1,
   active:        true,
   is_admin:      true,
-  // Permissions — added account.create so the route and navbar link work
   permissions: [
     'employee.view',
     'employee.create',

@@ -4,9 +4,9 @@ import { useAuthStore }  from './store/authStore';
 import App               from './App';
 import './styles/variables.css';
 
-// if (import.meta.env.DEV) {
-//   await import('./api/mock');
-// }
+ if (import.meta.env.DEV) {
+   await import('./api/mock');
+ }
 
 useAuthStore.getState().initFromStorage();
 
