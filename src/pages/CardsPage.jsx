@@ -3,7 +3,10 @@ import gsap from 'gsap';
 import Alert from '../components/ui/Alert';
 import CardVisual from '../features/cards/CardVisual';
 import CardDetailsPanel from '../features/cards/CardDetailsPanel';
+import CardRequestModal from '../features/cards/CardRequestModal';
+import TwoFactorModal from '../features/cards/TwoFactorModal';
 import { cardsApi } from '../api/endpoints/cards';
+import { useAuthStore } from '../store/authStore';
 import {
   CARD_STATUS,
   PORTAL_TYPE,
@@ -64,17 +67,26 @@ const MOCK_CARDS = [
 
 export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
   const pageRef = useRef(null);
+  const user = useAuthStore((s) => s.user);
 
   const [cards, setCards] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [viewMode, setViewMode] = useState(VIEW_MODE.OVERVIEW);
   const [loading, setLoading] = useState(true);
+  const [submitting2FA, setSubmitting2FA] = useState(false);
   const [error, setError] = useState(null);
   const [feedback, setFeedback] = useState(null);
 
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [twoFactorOpen, setTwoFactorOpen] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState(null);
+
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from('.page-anim', {
+      const nodes = pageRef.current?.querySelectorAll('.page-anim');
+      if (!nodes?.length) return;
+
+      gsap.from(nodes, {
         opacity: 0,
         y: 20,
         duration: 0.45,
@@ -94,7 +106,11 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
       setError(null);
 
       try {
-        const response = await cardsApi.getAll();
+        if (!user?.id) {
+          throw new Error('Korisnik nije učitan.');
+        }
+
+        const response = await cardsApi.getByUser(user.id);
         const normalized = (Array.isArray(response) ? response : response?.items ?? []).map(normalizeCard);
 
         if (!mounted) return;
@@ -118,7 +134,7 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user?.id]);
 
   const selectedCard = useMemo(() => {
     if (cards.length === 0) return null;
@@ -139,6 +155,57 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
 
   function goBackToOverview() {
     setViewMode(VIEW_MODE.OVERVIEW);
+  }
+
+  function openRequestModal() {
+    setRequestModalOpen(true);
+  }
+
+  function handleRequestContinue(formData) {
+    setPendingRequest(formData);
+    setRequestModalOpen(false);
+    setTwoFactorOpen(true);
+  }
+
+  async function handleConfirm2FA(code) {
+    if (!user?.id || !pendingRequest) return;
+
+    setSubmitting2FA(true);
+
+    try {
+      await cardsApi.requestNew(user.id, {
+        ...pendingRequest,
+        verification_code: code,
+      });
+
+      const newCard = normalizeCard({
+        id: Date.now(),
+        card_number: `4532${Math.floor(Math.random() * 100000000000).toString().padStart(12, '0')}`,
+        holder_name: user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Korisnik',
+        expiration_date: '12/29',
+        creation_date: new Date().toISOString(),
+        cvv: '999',
+        type: 'Debitna',
+        account_name: pendingRequest.accountName,
+        account_number: pendingRequest.accountNumber,
+        limit_daily: 20000,
+        limit_monthly: 60000,
+        limit: 60000,
+        status: CARD_STATUS.ACTIVE,
+        transactions: [],
+        authorized_jmbg: pendingRequest.authorizedJmbg || null,
+      });
+
+      setCards((prev) => [...prev, newCard]);
+      setSelectedIndex(cards.length);
+      setTwoFactorOpen(false);
+      setPendingRequest(null);
+      setFeedback({ type: 'uspeh', text: 'Zahtev za novu karticu je uspešno poslat.' });
+    } catch (err) {
+      setFeedback({ type: 'greska', text: err?.message || 'Slanje zahteva nije uspelo.' });
+    } finally {
+      setSubmitting2FA(false);
+    }
   }
 
   async function handleAction(cardId, actionKey) {
@@ -204,7 +271,6 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
   }
 
   return (
-
     <div ref={pageRef} className={styles.page}>
       <Navbar/>
       <main className={styles.sadrzaj}>
@@ -223,9 +289,15 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
 
       {viewMode === VIEW_MODE.OVERVIEW ? (
         <>
-          <div className="page-anim">
-            <h1 className={styles.pageTitle}>Kartice</h1>
-            <p className={styles.pageDescription}>Upravljajte vašim platnim karticama</p>
+          <div className={`page-anim ${styles.topBar}`}>
+            <div>
+              <h1 className={styles.pageTitle}>Kartice</h1>
+              <p className={styles.pageDescription}>Upravljajte vašim platnim karticama</p>
+            </div>
+
+            <button type="button" className={styles.btnPrimary} onClick={openRequestModal}>
+              Zatraži novu
+            </button>
           </div>
 
           <section className={`page-anim ${styles.heroSection}`}>
@@ -294,8 +366,8 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
                         Nema transakcija za prikaz.
                       </td>
                     </tr>
-
                   )}
+
                   {selectedCard.transactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td>{transaction.accountName}</td>
@@ -339,7 +411,22 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
             />
           </section>
         </>
-      )}</main>
+      )} </main>
+
+      <CardRequestModal
+        open={requestModalOpen}
+        onClose={() => setRequestModalOpen(false)}
+        onContinue={handleRequestContinue}
+        cards={cards}
+        selectedCard={selectedCard}
+      />
+
+      <TwoFactorModal
+        open={twoFactorOpen}
+        onClose={() => setTwoFactorOpen(false)}
+        onConfirm={handleConfirm2FA}
+        loading={submitting2FA}
+      />
     </div>
   );
 }

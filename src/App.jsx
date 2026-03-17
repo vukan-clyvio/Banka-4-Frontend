@@ -8,6 +8,7 @@ import EmployeeList        from './pages/EmployeeList';
 import NewEmployee         from './pages/NewEmployee';
 import EmployeeDetails     from './pages/EmployeeDetails';
 import NotFound            from './pages/NotFound';
+import CardsPage           from './pages/CardsPage';
 
 function ProtectedRoute({ children }) {
   const token = useAuthStore(s => s.token);
@@ -42,6 +43,9 @@ export default function App() {
         } />
         <Route path="/employees/:id" element={
           <ProtectedRoute><PermissionRoute permission="employee.view"><EmployeeDetails /></PermissionRoute></ProtectedRoute>
+        } />
+        <Route path="/cards" element={
+          <ProtectedRoute><CardsPage/></ProtectedRoute>
         } />
 
         <Route path="*" element={<NotFound />} />
