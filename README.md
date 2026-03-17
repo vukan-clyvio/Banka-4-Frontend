@@ -49,23 +49,10 @@ src/
 
 ---
 
-## Kloniranje repozitorijuma
-
-Da biste preuzeli projekat pratite sledeće korake:
-
-1. Otvorite repozitorijum **Banka-4-Frontend** na GitHub-u  
-2. Kliknite na zeleno dugme **Code**  
-3. Kopirajte URL za kloniranje:
-     ```https://github.com/RAF-SI-2025/Banka-4-Frontend.git```
-
-4. U okruženju (npr. **VS Code** ili **JetBrains IDE**) izaberite opciju **Clone Repository**  
-5. Nalepite kopirani link i klonirajte projekat na svoj računar
-
----
 
 ## Rad sa granama (Branches)
 
-1. Kada klonirate projekat bićete na **main** grani  
+1. Kada forkujete projekat bićete na **main** grani  
 2. Potrebno je da napravite novu granu za svoj rad
 
 Naziv grane treba da bude na engleskom i da opisuje šta radite, na primer:

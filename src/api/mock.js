@@ -24,6 +24,10 @@ const FAKE_EMPLOYEE = {
     'employee.update',
     'employee.delete',
     'account.create',
+    'admin.cards',
+    'admin.clients',
+    'admin.loans',
+ 
   ],
 };
 
@@ -46,6 +50,42 @@ const FAKE_CLIENTS = [
 
 const FAKE_ACCOUNTS = [];
 
+  {
+    id: 101,
+    first_name: 'Marko', last_name: 'Nikolić',
+    email: 'marko.nikolic@gmail.com', jmbg: '0411990710002',
+    phone_number: '+381641234567', address: 'Knez Mihailova 5, Beograd',
+    cards: [
+      { id: 'c1', card_number: '4111 1111 1111 1111', account_number: '170-23-2423219113', status: 'AKTIVNA'   },
+      { id: 'c2', card_number: '5200 0000 0000 0007', account_number: '73-4483942-32',     status: 'BLOKIRANA' },
+    ],
+  },
+  {
+    id: 102,
+    first_name: 'Jelena', last_name: 'Milić',
+    email: 'jelena.milic@gmail.com', jmbg: '1209985710003',
+    phone_number: '+381651234567', address: 'Nemanjina 10, Beograd',
+    cards: [
+      { id: 'c3', card_number: '3714 4963 5398 431', account_number: '456-7890987-65', status: 'NEAKTIVNA' },
+    ],
+  },
+  {
+    id: 103,
+    first_name: 'Petar', last_name: 'Petrović',
+    email: 'petar@gmail.com', jmbg: '0306025710001',
+    phone_number: '+381601234567', address: 'Terazije 1, Beograd',
+    cards: [],
+  },
+];
+
+const FAKE_LOAN_REQUESTS = [
+  { id: 'lr1', client_name: 'Marko Nikolić',  amount: 500000,  currency: 'RSD', duration_months: 36, rate_type: 'VARIJABILNA', status: 'NA ČEKANJU' },
+  { id: 'lr2', client_name: 'Jelena Milić',   amount: 200000,  currency: 'RSD', duration_months: 24, rate_type: 'FIKSNA',      status: 'NA ČEKANJU' },
+  { id: 'lr3', client_name: 'Petar Petrović', amount: 1000000, currency: 'RSD', duration_months: 60, rate_type: 'VARIJABILNA', status: 'ODOBRENO'   },
+  { id: 'lr4', client_name: 'Ana Jovanović',  amount: 150000,  currency: 'RSD', duration_months: 12, rate_type: 'FIKSNA',      status: 'ODBIJENO'   },
+];
+
+
 api.interceptors.request.use(async config => {
   await delay(DELAY);
 
@@ -53,15 +93,17 @@ api.interceptors.request.use(async config => {
   const data = typeof rawData === 'string' ? JSON.parse(rawData || '{}') : rawData ?? {};
   const path = url?.replace(import.meta.env.VITE_API_URL ?? '', '') ?? '';
 
-  if (method === 'post' && path === '/auth/login') {
-    if (data.username && data.password) {
+  if (method === 'post' && (path === '/auth/login' || path === '/login')) {
+    if (data.username && data.password || data.email && data.password) {
       return throwFakeResponse(config, {
+
         access_token:  'fake-jwt-token-123',
         token:         'fake-jwt-token-123',
         refresh_token: 'fake-refresh-token-456',
         expires_in:    3600,
         employee:      FAKE_EMPLOYEE,
-        user:          FAKE_EMPLOYEE,
+        user:          FAKE_EMPLOYEE,  
+
       });
     }
     return throwFakeError(config, 401, 'Pogrešan username ili lozinka.');
@@ -150,8 +192,26 @@ api.interceptors.request.use(async config => {
     if (params?.last_name)  filtered = filtered.filter(e => e.last_name.toLowerCase().includes(params.last_name.toLowerCase()));
     if (params?.position)   filtered = filtered.filter(e => String(e.position_id).includes(params.position));
 
+
     const page     = Number(params?.page)      || 1;
     const pageSize = Number(params?.page_size)  || 20;
+
+    if (params?.email) {
+      filtered = filtered.filter(e => e.email.toLowerCase().includes(params.email.toLowerCase()));
+    }
+    if (params?.first_name) {
+      filtered = filtered.filter(e => e.first_name.toLowerCase().includes(params.first_name.toLowerCase()));
+    }
+    if (params?.last_name) {
+      filtered = filtered.filter(e => e.last_name.toLowerCase().includes(params.last_name.toLowerCase()));
+    }
+    if (params?.position) {
+      filtered = filtered.filter(e => String(e.position_id).includes(params.position));
+    }
+
+    const page     = Number(params?.page)     || 1;
+    const pageSize = Number(params?.page_size) || 20;
+
     const start    = (page - 1) * pageSize;
     const sliced   = filtered.slice(start, start + pageSize);
 
@@ -163,6 +223,7 @@ api.interceptors.request.use(async config => {
       total_pages: Math.ceil(filtered.length / pageSize),
     });
   }
+
 
   if (method === 'get' && path === '/clients/search') {
     const q = params?.q?.toLowerCase() ?? '';
@@ -188,21 +249,70 @@ api.interceptors.request.use(async config => {
   if (method === 'get' && path === '/accounts') {
     return throwFakeResponse(config, { data: FAKE_ACCOUNTS, total: FAKE_ACCOUNTS.length });
   }
+  if (method === 'get' && path === '/clients') {
+    let filtered = [...FAKE_CLIENTS];
+    if (params?.first_name)     filtered = filtered.filter(c => c.first_name.toLowerCase().includes(params.first_name.toLowerCase()));
+    if (params?.last_name)      filtered = filtered.filter(c => c.last_name.toLowerCase().includes(params.last_name.toLowerCase()));
+    if (params?.jmbg)           filtered = filtered.filter(c => c.jmbg.includes(params.jmbg));
+    if (params?.account_number) filtered = filtered.filter(c =>
+      c.cards.some(card => card.account_number.includes(params.account_number))
+    );
+    filtered.sort((a, b) => a.last_name.localeCompare(b.last_name, 'sr'));
+    return throwFakeResponse(config, { data: filtered, total: filtered.length });
+  }
+
+  const clientIdMatch = path.match(/^\/clients\/(.+)$/);
+  if (method === 'patch' && clientIdMatch) {
+    const idx = FAKE_CLIENTS.findIndex(c => String(c.id) === clientIdMatch[1]);
+    if (idx !== -1) {
+      const emailInUse = FAKE_CLIENTS.some((c, i) => i !== idx && c.email.toLowerCase() === data.email?.toLowerCase());
+      if (emailInUse) return throwFakeError(config, 409, 'Email adresa je već u upotrebi u sistemu.');
+      Object.assign(FAKE_CLIENTS[idx], data);
+      return throwFakeResponse(config, FAKE_CLIENTS[idx]);
+    }
+    return throwFakeError(config, 404, 'Klijent nije pronađen.');
+  }
+
+  const unblockMatch = path.match(/^\/cards\/(.+)\/unblock$/);
+  if (method === 'patch' && unblockMatch) {
+    const cardId = unblockMatch[1];
+    for (const client of FAKE_CLIENTS) {
+      const card = client.cards.find(c => c.id === cardId);
+      if (card) {
+        if (card.status !== 'BLOKIRANA') return throwFakeError(config, 400, 'Kartica nije blokirana.');
+        card.status = 'AKTIVNA';
+        return throwFakeResponse(config, { message: 'Kartica je uspešno deblokirana.' });
+      }
+    }
+    return throwFakeError(config, 404, 'Kartica nije pronađena.');
+  }
+
+  if (method === 'get' && path === '/loan-requests') {
+    return throwFakeResponse(config, { data: FAKE_LOAN_REQUESTS, total: FAKE_LOAN_REQUESTS.length });
+  }
+
+  const approveMatch = path.match(/^\/loan-requests\/(.+)\/approve$/);
+  if (method === 'post' && approveMatch) {
+    const req = FAKE_LOAN_REQUESTS.find(r => r.id === approveMatch[1]);
+    if (req) { req.status = 'ODOBRENO'; return throwFakeResponse(config, { message: 'Zahtev odobren.' }); }
+    return throwFakeError(config, 404, 'Zahtev nije pronađen.');
+  }
+
+  const rejectMatch = path.match(/^\/loan-requests\/(.+)\/reject$/);
+  if (method === 'post' && rejectMatch) {
+    const req = FAKE_LOAN_REQUESTS.find(r => r.id === rejectMatch[1]);
+    if (req) { req.status = 'ODBIJENO'; return throwFakeResponse(config, { message: 'Zahtev odbijen.' }); }
+    return throwFakeError(config, 404, 'Zahtev nije pronađen.');
+  }
+
+  if (method === 'post' && path === '/loans/update-rate') {
+    return throwFakeResponse(config, { message: `Stopa ažurirana na ${data.reference_rate}%.` });
+
+  }
 
   return config;
 });
 
-function throwFakeResponse(config, responseData, status = 200) {
-  config.adapter = () =>
-    Promise.resolve({
-      data:    responseData,
-      status,
-      headers: {},
-      config,
-      request: {},
-    });
-  return config;
-}
 
 function throwFakeError(config, status, errorMsg) {
   config.adapter = () =>
