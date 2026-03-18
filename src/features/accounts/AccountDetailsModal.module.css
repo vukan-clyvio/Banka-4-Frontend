@@ -1,0 +1,269 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 27, 62, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 32px 36px 0;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tx-1);
+  letter-spacing: -0.3px;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--tx-3);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+
+.closeBtn:hover {
+  background: var(--input-bg);
+  color: var(--tx-1);
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tx-3);
+  margin-bottom: 12px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  color: var(--tx-2);
+}
+
+.fieldValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx-1);
+  text-align: right;
+}
+
+.fieldValueMono {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tx-1);
+  text-align: right;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge_ACTIVE {
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.badge_BLOCKED {
+  color: var(--red);
+  background: var(--red-bg);
+}
+
+.badge_CLOSED {
+  color: var(--tx-3);
+  background: var(--input-bg);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 0 32px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btnPrimary:hover {
+  opacity: 0.88;
+}
+
+.btnOutline {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--blue);
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btnOutline:hover {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--tx-2);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btnGhost:hover {
+  border-color: var(--tx-3);
+  color: var(--tx-1);
+}
+
+.btnPrimary:disabled,
+.btnOutline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.errorMsg {
+  background: var(--red-bg, #fef2f2);
+  color: var(--red, #dc2626);
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.formInput {
+  font-family: var(--font);
+  font-size: 14px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input-bg, #f8fafc);
+  color: var(--tx-1);
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.formInput:focus {
+  border-color: var(--blue);
+}
+
+.formStatic {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tx-1);
+  padding: 10px 0;
+}

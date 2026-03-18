@@ -1,0 +1,122 @@
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import gsap                          from 'gsap';
+import { accountsApi }               from '../api/endpoints/accounts';
+import { useAccountStore }           from '../store/accountStore';
+import Navbar                        from '../components/layout/Navbar';
+import Spinner                       from '../components/ui/Spinner';
+import Alert                         from '../components/ui/Alert';
+import AccountCard                   from '../features/accounts/AccountCard';
+import TransactionTable              from '../features/accounts/TransactionTable';
+import AccountDetailsModal           from '../features/accounts/AccountDetailsModal';
+import styles                        from './Accounts.module.css';
+
+export default function Accounts() {
+  const pageRef = useRef(null);
+
+  const accounts            = useAccountStore(s => s.accounts);
+  const selectedAccountId   = useAccountStore(s => s.selectedAccountId);
+  const transactionsLoading = useAccountStore(s => s.transactionsLoading);
+  const sortBy              = useAccountStore(s => s.sortBy);
+  const sortOrder           = useAccountStore(s => s.sortOrder);
+  const setAccounts         = useAccountStore(s => s.setAccounts);
+  const selectAccount       = useAccountStore(s => s.selectAccount);
+  const setTransactions     = useAccountStore(s => s.setTransactions);
+  const setSort             = useAccountStore(s => s.setSort);
+  const getSortedTxns       = useAccountStore(s => s.getSortedTransactions);
+  const reset               = useAccountStore(s => s.reset);
+
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(null);
+  const [modalAccount, setModalAccount] = useState(null);
+
+  // Fetch accounts on mount
+  useEffect(() => {
+    let cancelled = false;
+    accountsApi.getMyAccounts()
+      .then(res => { if (!cancelled) setAccounts(res.data); })
+      .catch(err => { if (!cancelled) setError(err?.response?.data?.error ?? 'Greška pri učitavanju računa.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; reset(); };
+  }, []);
+
+  // Fetch transactions when selected account changes
+  useEffect(() => {
+    if (!selectedAccountId) return;
+    let cancelled = false;
+    useAccountStore.setState({ transactionsLoading: true });
+    accountsApi.getTransactions(selectedAccountId)
+      .then(res => { if (!cancelled) setTransactions(res.data); })
+      .catch(() => { if (!cancelled) setTransactions([]); });
+    return () => { cancelled = true; };
+  }, [selectedAccountId]);
+
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.page-anim', {
+        opacity: 0, y: 20, duration: 0.4, stagger: 0.08, ease: 'power2.out',
+      });
+    }, pageRef);
+    return () => ctx.revert();
+  }, []);
+
+  const sortedTransactions = getSortedTxns();
+
+  return (
+    <div ref={pageRef} className={styles.stranica}>
+      <Navbar />
+      <main className={styles.sadrzaj}>
+        <div className="page-anim">
+          <div className={styles.breadcrumb}><span>Računi</span></div>
+          <div className={styles.pageHeader}>
+            <h1 className={styles.pageTitle}>Računi</h1>
+            <p className={styles.pageDesc}>Pregled vaših računa i istorija transakcija.</p>
+          </div>
+        </div>
+
+        {loading && <Spinner />}
+        {error && <Alert tip="greska" poruka={error} />}
+
+        {!loading && !error && (
+          <div className={`page-anim ${styles.masterDetail}`}>
+            <div className={styles.masterPanel}>
+              {accounts.map(acc => (
+                <AccountCard
+                  key={acc.account_id}
+                  account={acc}
+                  selected={acc.account_id === selectedAccountId}
+                  onSelect={selectAccount}
+                  onDetails={setModalAccount}
+                />
+              ))}
+              {accounts.length === 0 && (
+                <div className={styles.emptyAccounts}>Nemate aktivnih računa.</div>
+              )}
+            </div>
+
+            <div className={styles.detailPanel}>
+              <TransactionTable
+                transactions={sortedTransactions}
+                loading={transactionsLoading}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={setSort}
+              />
+            </div>
+          </div>
+        )}
+      </main>
+
+      <AccountDetailsModal
+        open={!!modalAccount}
+        onClose={() => setModalAccount(null)}
+        account={modalAccount}
+        onAccountUpdated={() => {
+          accountsApi.getMyAccounts()
+            .then(res => setAccounts(res.data))
+            .catch(() => {});
+          setModalAccount(null);
+        }}
+      />
+    </div>
+  );
+}
