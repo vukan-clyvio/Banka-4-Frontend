@@ -1,0 +1,53 @@
+.filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end; /* Poravnava inpute i labele po dnu */
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filters input,
+.filters select {
+  height: 40px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1.5px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #212529;
+  outline: none;
+  min-width: 150px;
+  transition: all 0.2s ease;
+}
+
+.filters input:focus,
+.filters select:focus {
+  border-color: #1b4fd8;
+  box-shadow: 0 0 0 3px rgba(27,79,216,0.1);
+}
+
+.dateInput {
+  min-width: 160px;
+}
+
+.amountInput {
+  width: 120px;
+}

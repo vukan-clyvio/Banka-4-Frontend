@@ -1,0 +1,223 @@
+.section {
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.sectionIcon {
+  width: 32px;
+  height: 32px;
+  background: var(--blue-dim);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionIcon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tx-1);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tx-2);
+  margin-bottom: 8px;
+}
+
+.required {
+  color: var(--red);
+}
+
+.fieldHint {
+  font-size: 11px;
+  color: var(--tx-3);
+  margin-top: 5px;
+}
+
+.greska {
+  font-size: 12px;
+  color: var(--red);
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.radioOption:hover {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.radioOption input[type="radio"] {
+  accent-color: var(--blue);
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.radioSelected {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.radioLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tx-1);
+  margin-bottom: 2px;
+}
+
+.radioDesc {
+  font-size: 12px;
+  color: var(--tx-3);
+}
+
+.currencyGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.currencyOpt {
+  padding: 10px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input-bg);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tx-2);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  letter-spacing: 0.02em;
+}
+
+.currencyOpt:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--surface);
+}
+
+.currencySelected {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+  color: var(--blue);
+}
+
+.fieldGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.input,
+.select {
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input-bg);
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--tx-1);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  width: 100%;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--border-focus);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.inputError {
+  border-color: var(--red) !important;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.checkboxRow:hover {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tx-1);
+  margin-bottom: 3px;
+}
+
+.checkboxDesc {
+  font-size: 12px;
+  color: var(--tx-3);
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .fieldGrid2 {
+    grid-template-columns: 1fr;
+  }
+  .currencyGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

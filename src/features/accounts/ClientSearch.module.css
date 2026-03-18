@@ -1,0 +1,137 @@
+.section {
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sectionIcon {
+  width: 32px;
+  height: 32px;
+  background: var(--blue-dim);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionIcon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tx-1);
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--tx-3);
+  margin-bottom: 18px;
+  line-height: 1.55;
+}
+
+.searchRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.fieldGrow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tx-2);
+  margin-bottom: 6px;
+}
+
+.required {
+  color: var(--red);
+}
+
+.input {
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input-bg);
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--tx-1);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.input:focus {
+  border-color: var(--border-focus);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSearch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 20px;
+  background: var(--surface);
+  color: var(--tx-1);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btnSearch svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btnSearch:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.btnSearch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.statusFound {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green);
+}
+
+.statusNotFound {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--amber);
+}

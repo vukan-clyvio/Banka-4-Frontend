@@ -15,7 +15,23 @@ import Dashboard           from './pages/Dashboard';
 import EmployeeList        from './pages/EmployeeList';
 import NewEmployee         from './pages/NewEmployee';
 import EmployeeDetails     from './pages/EmployeeDetails';
+import Accounts            from './pages/Accounts';
 import NotFound            from './pages/NotFound';
+
+import CreateTransfer from './features/transfers/CreateTransfer';
+import ConfirmTransfer from './features/transfers/ConfirmTransfer';
+import TransfersHistory from './features/transfers/TransfersHistory';
+
+import Loans from './pages/Loans';
+
+import PaymentOverview from './pages/PaymentOverview';
+
+
+import CardsPage           from './pages/CardsPage';
+
+import RatesList from "./features/exchange/RatesList.jsx";
+import CurrencyCalculator from "./features/exchange/CurrencyCalculator.jsx";
+
 
 function ProtectedRoute({ children }) {
   const token = useAuthStore(s => s.token);
@@ -26,6 +42,12 @@ function ProtectedRoute({ children }) {
 function PermissionRoute({ permission, children }) {
   const permissions = useAuthStore(s => s.user?.permissions ?? []);
   if (!permissions.includes(permission)) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function ClientRoute({ children }) {
+  const identityType = useAuthStore(s => s.user?.identity_type);
+  if (identityType?.toUpperCase() !== 'CLIENT') return <Navigate to="/" replace />;
   return children;
 }
 
@@ -87,11 +109,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* ROOT - Pametni redirect na osnovu role */}
         <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
 
         {/* UNIFIED LOGIN */}
         <Route path="/login"            element={<UnifiedLogin />} />
+
         <Route path="/reset-password"   element={<ResetPassword />} />
         <Route path="/activate"         element={<AccountActivation />} />
 
@@ -121,8 +145,35 @@ export default function App() {
         <Route path="/employees/:id" element={
           <ProtectedRoute><PermissionRoute permission="employee.view"><EmployeeDetails /></PermissionRoute></ProtectedRoute>
         } />
+]        <Route path="/loans" element={
+          <ProtectedRoute><Loans /></ProtectedRoute>
+        } />
+]
+        <Route path="/payments" element={
+          <ProtectedRoute><PaymentOverview /></ProtectedRoute>
+        } />
+
+        <Route path="/cards" element={
+          <ProtectedRoute><CardsPage/></ProtectedRoute>
+        } />
+
+        <Route path="/accounts" element={
+          <ProtectedRoute><ClientRoute><Accounts /></ClientRoute></ProtectedRoute>
+        } />
+
+
+        <Route path="/exchange/rates" element={<RatesList />} />
+        <Route path="/exchange/calculator" element={<CurrencyCalculator />} />
+
+
+          <Route path="/transfers/new" element={<ProtectedRoute><CreateTransfer /></ProtectedRoute>} />
+          <Route path="/transfers/confirm" element={<ProtectedRoute><ConfirmTransfer /></ProtectedRoute>} />
+          <Route path="/transfers/history" element={<ProtectedRoute><TransfersHistory /></ProtectedRoute>} />
 
         <Route path="*" element={<NotFound />} />
+
+
+
       </Routes>
     </BrowserRouter>
   );

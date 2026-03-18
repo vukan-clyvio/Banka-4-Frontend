@@ -1,0 +1,134 @@
+.detailsContainer {
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.header {
+  margin-bottom: 25px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 15px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 1.5rem;
+}
+
+.loanId {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Finansijske kartice (NKS, EKS, Dug) */
+.financialGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.card {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.card span {
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card strong {
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.debt {
+  color: #e74c3c !important; /* Crvena boja za dug */
+}
+
+/* Istaknuta sledeća rata */
+.nextInstallment {
+  margin-bottom: 30px;
+}
+
+.nextInstallment h3 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.nextDueBox {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+}
+
+.nextDueBox p {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.nextDueBox strong {
+  font-size: 1.4rem;
+}
+
+/* Tabela anuitetnog plana */
+.plan h3 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px;
+  background-color: #f4f7f6;
+  color: #555;
+  border-bottom: 2px solid #eee;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.paidBadge {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .financialGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nextDueBox {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

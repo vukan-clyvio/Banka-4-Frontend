@@ -1,0 +1,592 @@
+.stranica {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.sadrzaj {
+    flex: 1;
+    padding: 36px 40px;
+    max-width: 1240px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.breadcrumb {
+    font-size: 12px;
+    color: var(--tx-3);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.breadcrumbSep {
+    color: var(--border);
+}
+
+.breadcrumbActive {
+    color: var(--tx-2);
+}
+
+.pageHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.pageTitle {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--tx-1);
+    letter-spacing: -0.4px;
+    margin-bottom: 6px;
+}
+
+.pageDesc {
+    font-size: 14px;
+    color: var(--tx-2);
+    line-height: 1.55;
+}
+
+.calculatorCard {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 32px;
+    max-width: 520px;
+}
+
+.calculatorGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+    margin-bottom: 32px;
+}
+
+
+.field {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;           /* ← povećaj sa 7 → 12 ili 14 */
+}
+
+.field label {
+    font-size: 13px;     /* ili 12px ako hoćeš malo manje */
+    font-weight: 600;
+    color: var(--tx-2);
+    margin-bottom: 4px;  /* ← dodatna kontrola, opciono */
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+
+.field input,
+.field select {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--tx-1);
+    transition: all var(--transition);
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: var(--border-focus);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(27,79,216,0.1);
+}
+
+.field input.hasValue,
+.field select.hasValue {
+    background: #fff;
+}
+
+.resultBlock {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.resultValue {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--tx-1);
+    letter-spacing: -1px;
+}
+
+.resultCurrency {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--blue);
+    margin-left: 8px;
+}
+
+.resultSub {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--tx-3);
+}
+
+@media (max-width: 768px) {
+    .sadrzaj {
+        padding: 24px 16px;
+    }
+    .calculatorGrid {
+        grid-template-columns: 1fr;
+    }
+    .calculatorCard {
+        padding: 24px 20px;
+    }
+}
+
+.confirmCard,
+.successCard {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.summaryGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 32px;
+    margin-bottom: 32px;
+}
+
+.summaryItem {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tx-3);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.value,
+.valueBig {
+    font-size: 16px;
+    color: var(--tx-1);
+    font-weight: 500;
+}
+
+.valueBig {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.finalRow .label {
+    font-size: 15px;
+}
+
+.finalAmount {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: -0.5px;
+}
+
+.actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+}
+
+.btnPrimary,
+.btnSecondary {
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btnPrimary {
+    margin-top: 18px;
+    padding: 12px 24px;
+    background: var(--blue);
+    color: white;
+    border: none;
+}
+
+/*.btnPrimary:hover {*/
+/*    background: var(--blue-dark);*/
+/*}*/
+
+.btnSecondary {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--tx-1);
+}
+
+/*.btnSecondary:hover {*/
+/*    border-color: var(--tx-2);*/
+/*    background: var(--surface-hover);*/
+/*}*/
+
+.successCard {
+    text-align: center;
+    padding: 48px 32px;
+}
+
+.successIcon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.successCard h2 {
+    margin-bottom: 12px;
+    color: var(--green);
+}
+
+.tableCard {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.historyTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.historyTable thead {
+    background: var(--input-bg);
+}
+
+.historyTable th {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--tx-3);
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.historyTable td {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--tx-1);
+}
+
+.row {
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+/*.row:hover {*/
+/*    background: var(--surface-hover);*/
+/*}*/
+
+.accountPair {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fromAcc, .toAcc {
+    font-weight: 600;
+}
+
+.arrow {
+    color: var(--tx-3);
+    font-weight: bold;
+}
+
+.amountCell {
+    font-weight: 500;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.statusText {
+    font-weight: 500;
+}
+
+.emptyState {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--tx-2);
+}
+
+.emptyState p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    max-width: 520px;
+    width: 90%;
+    position: relative;
+    /*box-shadow: var(--shadow-md);*/
+}
+
+.closeBtn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--tx-3);
+}
+
+.modalGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 32px;
+}
+
+.modalLabel {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tx-3);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.modalAmount,
+.modalFinalAmount {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.modalFinal {
+    grid-column: 1 / -1;
+    margin-top: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.modalFinalAmount {
+    font-size: 24px;
+    color: var(--blue);
+}
+
+.statusLarge {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    backdrop-filter: blur(4px);
+}
+
+.modalContent {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 540px;
+    padding: 32px 40px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--tx-3);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.closeBtn:hover {
+    color: var(--tx-1);
+}
+
+.modalTitle {
+    margin: 0 0 28px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--tx-1);
+}
+
+.modalBody {
+    display: grid;
+    gap: 16px 0;
+}
+
+.modalRow {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    padding: 10px 0;
+    /*border-bottom: 1px solid var(--border-light);*/
+}
+
+.modalRow:last-child {
+    border-bottom: none;
+}
+
+.modalLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tx-3);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    align-self: start;
+    padding-top: 3px;
+}
+
+.modalAmountOutgoing {
+    font-weight: 600;
+    color: var(--red);
+}
+
+.modalFinalAmount {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: -0.3px;
+}
+
+.modalCommission {
+    color: var(--tx-2);
+}
+
+.currencyTag {
+    font-size: 0.9em;
+    color: var(--tx-3);
+    font-weight: 500;
+}
+
+.monoText {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: var(--input-bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.modalStatus {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.statusSuccess {
+    color: var(--green);
+}
+
+.statusFailed {
+    color: var(--red);
+}
+
+/*.statusPending {*/
+/*    color: var(--);*/
+/*}*/
+
+.modalFinalRow {
+    margin-top: 12px;
+    padding-top: 16px;
+    border-top: 2px solid var(--border);
+    font-size: 1.1em;
+}
+
+.modalFooter {
+    margin-top: 28px;
+    text-align: right;
+}
+
+.btnSecondary {
+    padding: 10px 24px;
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--tx-1);
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+    /*background: var(--surface-hover);*/
+    border-color: var(--tx-2);
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.infoBlock {
+    background: #f5f7fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.card {
+    background: white;
+    padding: 28px 24px;
+    border-radius: 12px;
+}
+
+.infoBlock {
+    margin-top: 10px;
+    font-size: 14px;
+}

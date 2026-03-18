@@ -11,19 +11,23 @@ export default function Navbar() {
   const logout   = useAuthStore(s => s.logout);
   const { can, canAny } = usePermissions();
 
-  const [showMenu,     setShowMenu]     = useState(false);
-  const [showPwModal,  setShowPwModal]  = useState(false);
-  const menuRef = useRef(null);
+
+  const [showMenu,      setShowMenu]      = useState(false);
+  const [showPwModal,   setShowPwModal]   = useState(false);
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
+
+  const menuRef  = useRef(null);
+  const adminRef = useRef(null);
+ 
 
   useEffect(() => {
     function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setShowMenu(false);
-      }
+      if (menuRef.current  && !menuRef.current.contains(e.target))  setShowMenu(false);
+      if (adminRef.current && !adminRef.current.contains(e.target)) setShowAdminMenu(false);
     }
-    if (showMenu) document.addEventListener('mousedown', handleClick);
+    if (showMenu || showAdminMenu) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [showMenu]);
+  }, [showMenu, showAdminMenu]);
 
   function handleLogout() {
     setShowMenu(false);
@@ -38,6 +42,8 @@ export default function Navbar() {
   const fullName = user?.first_name && user?.last_name
     ? `${user.first_name} ${user.last_name}`
     : 'Korisnik';
+
+  const hasAdminAccess = canAny('admin.cards', 'admin.clients', 'admin.loans');
 
   return (
     <>
@@ -61,12 +67,109 @@ export default function Navbar() {
               Zaposleni
             </NavLink>
           )}
+
           <NavLink
             to="/clients"
             className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
           >
             Klijenti
           </NavLink>
+
+          <NavLink
+            to="/loans"
+            className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+          >
+            Krediti
+          </NavLink>
+
+
+
+          <NavLink
+            to="/payments"
+            className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+          >
+          Plaćanja
+          </NavLink>
+
+
+          <NavLink
+            to="/cards"
+            className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+          >
+            Kartice
+          </NavLink>
+
+
+
+          {can('account.create') && (
+            <NavLink
+              to="/accounts/new"
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+            >
+              Novi račun
+            </NavLink>
+          )}
+          {hasAdminAccess && (
+            <div className={styles.adminDropdownWrap} ref={adminRef}>
+              <button
+                className={`${styles.navLink} ${styles.adminToggle} ${showAdminMenu ? styles.active : ''}`}
+                onClick={() => setShowAdminMenu(prev => !prev)}
+              >
+                Admin portali
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4, opacity: 0.6 }}>
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              {showAdminMenu && (
+                <div className={styles.adminMenu}>
+                  {can('admin.cards') && (
+                    <NavLink
+                      to="/admin/cards"
+                      className={({ isActive }) => `${styles.adminMenuItem} ${isActive ? styles.adminMenuItemActive : ''}`}
+                      onClick={() => setShowAdminMenu(false)}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                      </svg>
+                      Računi i kartice
+                    </NavLink>
+                  )}
+                  {can('admin.clients') && (
+                    <NavLink
+                      to="/admin/clients"
+                      className={({ isActive }) => `${styles.adminMenuItem} ${isActive ? styles.adminMenuItemActive : ''}`}
+                      onClick={() => setShowAdminMenu(false)}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                      Klijenti
+                    </NavLink>
+                  )}
+                  {can('admin.loans') && (
+                    <NavLink
+                      to="/admin/loans"
+                      className={({ isActive }) => `${styles.adminMenuItem} ${isActive ? styles.adminMenuItemActive : ''}`}
+                      onClick={() => setShowAdminMenu(false)}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2a3 3 0 0 1 3 3v1h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3V5a3 3 0 0 1 3-3z"/>
+                      </svg>
+                      Krediti
+                    </NavLink>
+                  )}
+                </div>
+              )}
+            </div>
+            
+          )}
+
+
+
         </div>
 
         <div className={styles.right}>

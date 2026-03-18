@@ -1,0 +1,128 @@
+.wrapper {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tx-1);
+}
+
+.sortGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.sortBtn {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--tx-3);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sortBtn:hover {
+  color: var(--tx-1);
+  border-color: var(--tx-3);
+}
+
+.sortBtn.sortActive {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tx-3);
+  padding: 10px 24px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--input-bg);
+}
+
+.table tbody tr {
+  transition: background var(--transition);
+}
+
+.table tbody tr:hover {
+  background: var(--input-bg);
+}
+
+.table tbody td {
+  font-size: 13px;
+  color: var(--tx-1);
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.date {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--tx-2);
+  white-space: nowrap;
+}
+
+.code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--tx-3);
+}
+
+.alignRight {
+  text-align: right !important;
+}
+
+.amount {
+  text-align: right;
+  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.deposit {
+  color: var(--green);
+}
+
+.withdrawal {
+  color: var(--red);
+}
+
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--tx-3);
+}

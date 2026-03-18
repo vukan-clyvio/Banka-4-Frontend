@@ -1,0 +1,137 @@
+/* src/features/exchange/RatesList.module.css */
+.stranica {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.sadrzaj {
+    flex: 1;
+    padding: 36px 40px;
+    max-width: 1240px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.breadcrumb {
+    font-size: 12px;
+    color: var(--tx-3);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.breadcrumbSep { color: var(--border); }
+.breadcrumbActive { color: var(--tx-2); }
+
+.pageHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.pageTitle {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--tx-1);
+    letter-spacing: -0.4px;
+    margin-bottom: 6px;
+}
+
+.pageDesc {
+    font-size: 14px;
+    color: var(--tx-2);
+    line-height: 1.55;
+}
+
+.tableCard {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.modernTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.modernTable thead {
+    background: var(--input-bg);
+}
+
+.modernTable th {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--tx-3);
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.modernTable td {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--tx-1);
+}
+
+.row {
+    transition: background var(--transition);
+}
+
+.row:hover {
+    background: var(--blue-dim);
+}
+
+.currencyCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.flagEmoji {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.midRate {
+    font-weight: 600;
+    color: var(--blue);
+}
+
+@media (max-width: 768px) {
+    .sadrzaj {
+        padding: 24px 16px;
+    }
+}
+
+
+.flag {
+    width: 24px;
+    height: 18px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    background: #f8f9fa;
+    flex-shrink: 0;
+}
+
+.currencyCell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: var(--tx-1);
+}

@@ -1,0 +1,98 @@
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Kartice idu jedna na drugu, razdvaja ih border */
+}
+
+.loanCard {
+  padding: 20px;
+  cursor: pointer;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.loanCard:hover {
+  background-color: #f8fbff;
+}
+
+.loanCard.active {
+  background-color: #edf2ff;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.loanName {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.statusBadge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 20px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.idLabel {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.idLabel strong {
+  color: #333;
+}
+
+.amountWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #95a5a6;
+  text-transform: uppercase;
+}
+
+.amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Plava linija sa strane za aktivni kredit */
+.selectionIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.loanCard.active .selectionIndicator {
+  background: #3498db;
+}
+
+/* Stil za poslednju karticu da nema border dole */
+.loanCard:last-child {
+  border-bottom: none;
+}

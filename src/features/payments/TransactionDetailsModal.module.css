@@ -1,0 +1,95 @@
+.overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px); /* Ovo će malo zamutiti pozadinu, izgleda vrh */
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  width: 95%; 
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  position: relative;
+  /* DODAJ OVO: */
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* SREĐIVANJE X DUGMETA */
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.closeBtn:hover {
+  color: #333;
+}
+
+.infoRow {
+  display: flex; justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.negative { color: #e53935; font-weight: 600; }
+.positive { color: #43a047; font-weight: 600; }
+
+/* DUGMICI U MODALU */
+.footer {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Ako ne želiš da importuješ globalne, evo ti čisti stilovi za dugmiće ovde */
+.btnPrimary {
+  background-color: #1b4fd8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btnPrimary:hover {
+  background-color: #1640b0;
+}
+
+.btnSecondary {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSecondary:hover {
+  background-color: #e2e8f0;
+}
+
+/* BADGE STATUSI */
+.badge {
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.Realizovano { background: #e8f5e9; color: #2e7d32; }
+.Uobradi { background: #fff3e0; color: #ef6c00; }
+.Odbijeno { background: #ffebee; color: #c62828; }
