@@ -139,15 +139,14 @@ export default function ClientDashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showPaymentsMenu]);
 
-  const { data: accountsData,  loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(),     []);
-  const { data: txData,        loading: loadingTx }       = useFetch(() => clientApi.getTransactions(), []);
-  const { data: recipientsData }                          = useFetch(() => clientApi.getRecipients(),   []);
-  const { data: ratesData }                               = useFetch(() => clientApi.getRates(),        []);
+  const clientId = useAuthStore(s => s.user?.id);
+
+  const { data: accountsData,  loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
 
   const accounts     = accountsData?.data   ?? [];
-  const transactions = txData?.data         ?? [];
-  const recipients   = recipientsData?.data ?? [];
-  const rates        = ratesData?.data      ?? [];
+  const transactions = []; // No backend endpoint for client transactions list yet
+  const recipients   = []; // No backend endpoint for recipients yet
+  const rates        = []; // No backend endpoint for exchange rates yet
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -288,7 +287,7 @@ export default function ClientDashboard() {
                 {activeAccount?.name ?? 'Račun'}
               </button>
             </div>
-            {loadingTx ? <Spinner /> : (
+            {false ? <Spinner /> : (
               <table className={styles.txTable}>
                 <thead><tr><th>Opis</th><th>Datum</th><th style={{ textAlign: 'right' }}>Iznos</th></tr></thead>
                 <tbody>

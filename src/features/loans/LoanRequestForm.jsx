@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { loansApi } from '../../api/endpoints/loans';
-import { authApi } from '../../api/endpoints/auth'; // Dodato za getMe
 import styles from './LoanRequestForm.module.css';
 
 export default function LoanRequestForm() {
-  // 1. Koristimo lokalni state za usera da bi izbegli undefined pre nego što se store učita
-  const [user, setUser] = useState(null);
-  const [rates, setRates] = useState({ belibor: 5.0, margin: 2.2 }); // Za dinamički EKS
-
-  useEffect(() => {
-    // Pozivamo mock podatke za korisnika
-    authApi.getMe().then(res => setUser(res.data));
-    // Opciono: poziv za kamatne stope iz loansApi
-  }, []);
+  const user = useAuthStore(s => s.user);
+  const clientId = user?.id;
+  const [rates] = useState({ belibor: 5.0, margin: 2.2 }); // Za dinamički EKS
 
   const [formData, setFormData] = useState({
     loanType: 'CASH',
@@ -49,7 +42,7 @@ export default function LoanRequestForm() {
     setStatus('PROCESSING');
 
     try {
-      await loansApi.createRequest(formData);
+      await loansApi.createRequest(clientId, formData);
       
       setTimeout(() => {
         const isEmployedPermanently = user?.employment_status === 'stalno';

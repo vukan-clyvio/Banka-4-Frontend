@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { employeesApi }        from '../../api/endpoints/employees';
+import { authApi }             from '../../api/endpoints/auth';
 import { validirajLozinku, sePoklapa, jacinalozinke } from '../../utils/helpers';
 import Alert                   from '../ui/Alert';
 import styles                  from './ChangePasswordModal.module.css';
@@ -37,7 +37,7 @@ export default function ChangePasswordModal({ open, onClose }) {
     setSubmitting(true);
     setError(null);
     try {
-      await employeesApi.changePassword({
+      await authApi.changePassword({
         old_password: oldPassword,
         new_password: newPassword,
       });

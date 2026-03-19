@@ -1,15 +1,9 @@
-import api from '../client';
+import { bankingApi as api } from '../client';
 
 export const transfersApi = {
+  // Get transfer history for a client (paginated)
+  getHistory: (clientId, params) => api.get(`/clients/${clientId}/transfers`, { params }),
 
-    getMyAccounts: () => api.get('/client/accounts'),           // ← potvrdi sa backendom tačan path ako nije ovaj
-
-    getPreview: (data) =>
-        api.post('/client/transfers/preview', data),             // { fromAccountId, toAccountId, amount }
-
-    execute: (data) =>
-        api.post('/client/transfers', data),                     // { fromAccountId, toAccountId, amount }
-
-
-    getHistory: () => api.get('/client/transfers'),
+  // Execute internal transfer: { from_account, to_account, amount }
+  execute: (clientId, data) => api.post(`/clients/${clientId}/transfers`, data),
 };

@@ -6,11 +6,19 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use(config => {
+export const bankingApi = axios.create({
+  baseURL: import.meta.env.VITE_BANKING_API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+function attachToken(config) {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
-});
+}
+
+api.interceptors.request.use(attachToken);
+bankingApi.interceptors.request.use(attachToken);
 
 let isRefreshing = false;
 let failedQueue  = [];
@@ -76,6 +84,17 @@ api.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
+  }
+);
+
+bankingApi.interceptors.response.use(
+  res => res.data,
+  err => {
+    if (err.response?.status === 401) {
+      useAuthStore.getState().logout();
+      window.location.href = '/login';
+    }
+    return Promise.reject(err.response?.data ?? err);
   }
 );
 

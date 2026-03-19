@@ -2,7 +2,6 @@ import { useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, Link }                  from 'react-router-dom';
 import gsap                                   from 'gsap';
 import { authApi }                            from '../../api/endpoints/auth';
-import { clientApi }                          from '../../api/endpoints/client';
 import { useAuthStore }                       from '../../store/authStore';
 import Alert                                  from '../../components/ui/Alert';
 import styles                                 from './Login.module.css';
@@ -36,25 +35,15 @@ export default function UnifiedLogin() {
     setSubmitting(true);
     
     try {
-      let res;
-      
-      // Pozovi odgovarajući API endpoint na osnovu tipa
-      if (loginType === 'client') {
-        res = await clientApi.login({ email, password });
-      } else {
-        res = await authApi.login({ email, password });
-      }
-      
-      // Sačuvaj autentifikaciju
+      const res = await authApi.login({ email, password });
+
       setAuth(res.user, res.token, res.refresh_token);
-      
-      // Redirect na odgovarajući dashboard
-      if (loginType === 'client') {
-        navigate('/dashboard');  // ✅ ISPRAVLJENO: bilo je /client/dashboard
+
+      if (res.user?.identity_type === 'client') {
+        navigate('/dashboard');
       } else {
-        navigate('/admin');  // ✅ ISPRAVLJENO: bilo je /
+        navigate('/admin');
       }
-      
     } catch (err) {
       setError(err.error ?? 'Pogrešan email ili lozinka. Proverite unos i pokušajte ponovo.');
     } finally {

@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { clientApi } from '../../api/endpoints/client';
 import { useFetch } from '../../hooks/useFetch';
+import { useAuthStore } from '../../store/authStore';
 import styles from './ClientSubPage.module.css';
 
 export default function ClientExchange() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
-  const { data: ratesData } = useFetch(() => clientApi.getRates(), []);
-  const { data: accountsData } = useFetch(() => clientApi.getAccounts(), []);
-  const rates = ratesData?.data ?? [];
+  const clientId = useAuthStore(s => s.user?.id);
+  // Exchange rates endpoint not yet available in backend — rates will be empty
+  const rates = [];
+  const { data: accountsData } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
   const accounts = accountsData?.data ?? [];
 
   const [amount, setAmount] = useState('');
@@ -92,7 +94,7 @@ export default function ClientExchange() {
         <div className={styles.formField}>
           <label>Sa računa</label>
           <select className={styles.formInput}>
-            {accounts.map(a => <option key={a.id}>{a.name}</option>)}
+            {accounts.map(a => { const k = a.account_number ?? a.number ?? a.id; return <option key={k} value={k}>{a.name}</option>; })}
           </select>
         </div>
         <button className={styles.submitBtn} onClick={handleExchange} disabled={!amount}>

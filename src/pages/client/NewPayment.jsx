@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { clientApi } from '../../api/endpoints/client';
 import { paymentsApi } from '../../api/endpoints/payments';
+import { useAuthStore } from '../../store/authStore';
 import { useFetch } from '../../hooks/useFetch';
 import Spinner from '../../components/ui/Spinner';
 import styles from './ClientSubPage.module.css';
@@ -76,13 +77,13 @@ function formatAmount(n, currency = 'RSD') {
 export default function NewPayment() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
+  const clientId = useAuthStore(s => s.user?.id);
 
-  const { data: accountsData, loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(), []);
-  const { data: recipientsData } = useFetch(() => clientApi.getRecipients(), []);
-  const accounts   = accountsData?.data   ?? [];
-  const recipients = recipientsData?.data ?? [];
+  const { data: accountsData, loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
+  const accounts   = accountsData?.data ?? [];
+  const recipients = []; // No backend endpoint for recipients yet
 
-  const [fromAccountId,   setFromAccountId]   = useState('');
+  const [fromAccountNumber, setFromAccountNumber] = useState('');
   const [recipientName,   setRecipientName]   = useState('');
   const [recipientAccount,setRecipientAccount]= useState('');
   const [amount,          setAmount]          = useState('');
@@ -92,17 +93,18 @@ export default function NewPayment() {
   const [showSuggest,     setShowSuggest]     = useState(false);
   const [formError,       setFormError]       = useState('');
   const [showVerify,      setShowVerify]      = useState(false);
+  const [pendingPaymentId, setPendingPaymentId] = useState(null);
   const [submitting,      setSubmitting]      = useState(false);
   const [success,         setSuccess]         = useState(false);
   const [showAddRecipient,setShowAddRecipient]= useState(false);
   const [addedRecipient,  setAddedRecipient]  = useState(false);
 
-  const fromAccount = accounts.find(a => String(a.id) === String(fromAccountId));
+  const fromAccount = accounts.find(a => (a.account_number ?? a.number) === fromAccountNumber);
 
   // init default account
   useEffect(() => {
-    if (accounts.length > 0 && !fromAccountId) {
-      setFromAccountId(String(accounts[0].id));
+    if (accounts.length > 0 && !fromAccountNumber) {
+      setFromAccountNumber(accounts[0]?.account_number ?? accounts[0]?.number ?? '');
     }
   }, [accounts]);
 
@@ -125,7 +127,7 @@ export default function NewPayment() {
   }
 
   function validate() {
-    if (!fromAccountId) return 'Izaberite račun platioca.';
+    if (!fromAccountNumber) return 'Izaberite račun platioca.';
     if (!recipientName.trim()) return 'Unesite ime primaoca.';
     const digits = recipientAccount.replace(/\D/g, '');
     if (digits.length !== 18) return 'Broj računa primaoca mora imati tačno 18 cifara.';
@@ -134,33 +136,44 @@ export default function NewPayment() {
     return '';
   }
 
-  function handleNext(e) {
+  async function handleNext(e) {
     e.preventDefault();
     const err = validate();
     if (err) { setFormError(err); return; }
     setFormError('');
-    setShowVerify(true);
-  }
-
-  async function handleConfirm(_code) {
     setSubmitting(true);
     try {
-      await paymentsApi.create({
-        from_account_id:  fromAccount.id,
-        recipient_name:   recipientName.trim(),
-        recipient_account: recipientAccount.replace(/\D/g, ''),
-        amount:           Number(amount),
-        currency:         fromAccount.currency,
-        payment_code:     paymentCode,
-        reference_number: referenceNumber,
-        purpose:          purpose,
+      // Step 1: create payment — backend returns payment ID and triggers OTP
+      const res = await paymentsApi.create(clientId, {
+        payer_account_number:     fromAccountNumber,
+        recipient_account_number: recipientAccount.replace(/\D/g, ''),
+        recipient_name:           recipientName.trim(),
+        amount:                   Number(amount),
+        payment_code:             paymentCode,
+        reference_number:         referenceNumber,
+        purpose:                  purpose,
       });
+      setPendingPaymentId(res?.data?.payment_id ?? res?.payment_id);
+      setShowVerify(true);
+    } catch (err) {
+      setFormError(err?.message || 'Greška pri slanju naloga.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleConfirm(code) {
+    if (!pendingPaymentId) return;
+    setSubmitting(true);
+    try {
+      // Step 2: verify payment with OTP
+      await paymentsApi.verify(clientId, pendingPaymentId, { code });
       setShowVerify(false);
       setSuccess(true);
       const alreadySaved = recipients.some(r => r.account_number === recipientAccount.replace(/\D/g, ''));
       setShowAddRecipient(!alreadySaved);
     } catch (err) {
-      setFormError(err?.message || 'Greška pri slanju naloga.');
+      setFormError(err?.message || 'Greška pri verifikaciji.');
       setShowVerify(false);
     } finally {
       setSubmitting(false);
@@ -203,7 +216,7 @@ export default function NewPayment() {
             <p style={{ fontSize: 13, color: 'var(--green)', marginBottom: 12 }}>✓ Primalac je sačuvan u adresaru.</p>
           )}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            <button className={pStyles.btnPrimary} onClick={() => { setSuccess(false); setFromAccountId(''); setRecipientName(''); setRecipientAccount(''); setAmount(''); setPurpose(''); setReferenceNumber(''); setShowAddRecipient(false); setAddedRecipient(false); }}>
+            <button className={pStyles.btnPrimary} onClick={() => { setSuccess(false); setFromAccountNumber(''); setRecipientName(''); setRecipientAccount(''); setAmount(''); setPurpose(''); setReferenceNumber(''); setShowAddRecipient(false); setAddedRecipient(false); setPendingPaymentId(null); }}>
               Novo plaćanje
             </button>
             <button className={pStyles.btnGhost} onClick={() => navigate('/dashboard')}>
@@ -229,13 +242,16 @@ export default function NewPayment() {
           {/* Račun platioca */}
           <div className={styles.formField}>
             <label>Račun platioca</label>
-            <select className={styles.formInput} value={fromAccountId} onChange={e => { setFromAccountId(e.target.value); setFormError(''); }}>
+            <select className={styles.formInput} value={fromAccountNumber} onChange={e => { setFromAccountNumber(e.target.value); setFormError(''); }}>
               <option value="">Izaberite račun...</option>
-              {accounts.map(a => (
-                <option key={a.id} value={a.id}>
-                  {a.name} — {formatAmount(a.balance, a.currency)}
-                </option>
-              ))}
+              {accounts.map(a => {
+                const accNum = a.account_number ?? a.number;
+                return (
+                  <option key={accNum} value={accNum}>
+                    {a.name} — {formatAmount(a.balance, a.currency)}
+                  </option>
+                );
+              })}
             </select>
             {fromAccount && (
               <span className={pStyles.limitHint} title={`Stanje: ${formatAmount(fromAccount.balance, fromAccount.currency)}`}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { clientApi } from '../../api/endpoints/client';
 import { useFetch } from '../../hooks/useFetch';
+import { useAuthStore } from '../../store/authStore';
 import Spinner from '../../components/ui/Spinner';
 import styles from './ClientSubPage.module.css';
 
@@ -13,7 +14,8 @@ function formatAmount(amount, currency = 'RSD') {
 export default function ClientAccounts() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
-  const { data, loading } = useFetch(() => clientApi.getAccounts(), []);
+  const clientId = useAuthStore(s => s.user?.id);
+  const { data, loading } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
   const accounts = data?.data ?? [];
 
   useLayoutEffect(() => {

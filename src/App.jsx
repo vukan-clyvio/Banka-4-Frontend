@@ -53,7 +53,13 @@ function PermissionRoute({ permission, children }) {
 
 function ClientRoute({ children }) {
   const identityType = useAuthStore(s => s.user?.identity_type);
-  if (identityType?.toUpperCase() !== 'CLIENT') return <Navigate to="/" replace />;
+  if (identityType !== 'client') return <Navigate to="/admin" replace />;
+  return children;
+}
+
+function EmployeeRoute({ children }) {
+  const identityType = useAuthStore(s => s.user?.identity_type);
+  if (identityType !== 'employee') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -66,14 +72,12 @@ export default function App() {
     useAuthStore.getState().initFromStorage();
   }, []);
   
-  // Odluči gde da redirektuje na osnovu role
+  // Odluči gde da redirektuje na osnovu identity_type
   const getDefaultRoute = () => {
     if (!token) return '/login';
     if (!user)  return '/login';
-    if (user.role === 'client')   return '/dashboard';
-    if (user.role === 'employee') return '/admin';
-    if (user.employee_id)         return '/admin';
-    if (user.id && !user.employee_id) return '/dashboard';
+    if (user.identity_type === 'client')   return '/dashboard';
+    if (user.identity_type === 'employee') return '/admin';
     return '/login';
   };
   
@@ -91,57 +95,38 @@ export default function App() {
         <Route path="/activate"         element={<AccountActivation />} />
 
         {/* KLIJENTSKE RUTE */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute><ClientDashboard /></ProtectedRoute>
-        } />
-        <Route path="/client/accounts"  element={<ProtectedRoute><ClientAccounts  /></ProtectedRoute>} />
-        <Route path="/client/payments"  element={<ProtectedRoute><PaymentOverview /></ProtectedRoute>} />
-        <Route path="/client/transfers" element={<ProtectedRoute><ClientTransfers /></ProtectedRoute>} />
-        <Route path="/client/exchange"  element={<ProtectedRoute><ClientExchange  /></ProtectedRoute>} />
-        <Route path="/client/cards"     element={<ProtectedRoute><ClientCards     /></ProtectedRoute>} />
-        <Route path="/client/loans"         element={<ProtectedRoute><ClientLoans     /></ProtectedRoute>} />
-        <Route path="/client/payments/new" element={<ProtectedRoute><NewPayment      /></ProtectedRoute>} />
-        <Route path="/client/recipients"  element={<ProtectedRoute><ClientRecipients  /></ProtectedRoute>} />
+        <Route path="/dashboard"           element={<ProtectedRoute><ClientRoute><ClientDashboard /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/accounts"     element={<ProtectedRoute><ClientRoute><ClientAccounts  /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/payments"     element={<ProtectedRoute><ClientRoute><PaymentOverview /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/transfers"    element={<ProtectedRoute><ClientRoute><ClientTransfers /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/exchange"     element={<ProtectedRoute><ClientRoute><ClientExchange  /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/cards"        element={<ProtectedRoute><ClientRoute><ClientCards     /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/loans"        element={<ProtectedRoute><ClientRoute><ClientLoans     /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/payments/new" element={<ProtectedRoute><ClientRoute><NewPayment      /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/recipients"   element={<ProtectedRoute><ClientRoute><ClientRecipients /></ClientRoute></ProtectedRoute>} />
+        <Route path="/transfers/new"       element={<ProtectedRoute><ClientRoute><CreateTransfer  /></ClientRoute></ProtectedRoute>} />
+        <Route path="/transfers/confirm"   element={<ProtectedRoute><ClientRoute><ConfirmTransfer /></ClientRoute></ProtectedRoute>} />
+        <Route path="/transfers/history"   element={<ProtectedRoute><ClientRoute><TransfersHistory /></ClientRoute></ProtectedRoute>} />
 
         {/* ADMIN/EMPLOYEE RUTE */}
-        <Route path="/admin" element={
-          <ProtectedRoute><Dashboard /></ProtectedRoute>
-        } />
-        <Route path="/clients" element={
-          <ProtectedRoute><ClientList /></ProtectedRoute>
-        } />
+        <Route path="/admin"     element={<ProtectedRoute><EmployeeRoute><Dashboard    /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/clients"   element={<ProtectedRoute><EmployeeRoute><ClientList   /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/loans"     element={<ProtectedRoute><EmployeeRoute><Loans        /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/payments"  element={<ProtectedRoute><EmployeeRoute><PaymentOverview /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/cards"     element={<ProtectedRoute><EmployeeRoute><CardsPage    /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/accounts"  element={<ProtectedRoute><EmployeeRoute><Accounts     /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/employees" element={
-          <ProtectedRoute><PermissionRoute permission="employee.view"><EmployeeList /></PermissionRoute></ProtectedRoute>
+          <ProtectedRoute><EmployeeRoute><PermissionRoute permission="employee.view"><EmployeeList /></PermissionRoute></EmployeeRoute></ProtectedRoute>
         } />
         <Route path="/employees/new" element={
-          <ProtectedRoute><PermissionRoute permission="employee.create"><NewEmployee /></PermissionRoute></ProtectedRoute>
+          <ProtectedRoute><EmployeeRoute><PermissionRoute permission="employee.create"><NewEmployee /></PermissionRoute></EmployeeRoute></ProtectedRoute>
         } />
         <Route path="/employees/:id" element={
-          <ProtectedRoute><PermissionRoute permission="employee.view"><EmployeeDetails /></PermissionRoute></ProtectedRoute>
-        } />
-        <Route path="/loans" element={
-          <ProtectedRoute><Loans /></ProtectedRoute>
-        } />
-        <Route path="/payments" element={
-          <ProtectedRoute><PaymentOverview /></ProtectedRoute>
+          <ProtectedRoute><EmployeeRoute><PermissionRoute permission="employee.view"><EmployeeDetails /></PermissionRoute></EmployeeRoute></ProtectedRoute>
         } />
 
-        <Route path="/cards" element={
-          <ProtectedRoute><CardsPage/></ProtectedRoute>
-        } />
-
-        <Route path="/accounts" element={
-          <ProtectedRoute><ClientRoute><Accounts /></ClientRoute></ProtectedRoute>
-        } />
-
-
-        <Route path="/exchange/rates" element={<RatesList />} />
+        <Route path="/exchange/rates"      element={<RatesList />} />
         <Route path="/exchange/calculator" element={<CurrencyCalculator />} />
-
-
-          <Route path="/transfers/new" element={<ProtectedRoute><CreateTransfer /></ProtectedRoute>} />
-          <Route path="/transfers/confirm" element={<ProtectedRoute><ConfirmTransfer /></ProtectedRoute>} />
-          <Route path="/transfers/history" element={<ProtectedRoute><TransfersHistory /></ProtectedRoute>} />
 
         <Route path="*" element={<NotFound />} />
 

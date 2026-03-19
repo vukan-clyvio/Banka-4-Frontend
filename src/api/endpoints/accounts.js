@@ -1,10 +1,21 @@
-import api from '../client';
+import { bankingApi as api } from '../client';
 
 export const accountsApi = {
-  getMyAccounts:   ()              => api.get('/accounts'),
-  getById:         (id)            => api.get(`/accounts/${id}`),
-  getTransactions: (accountId)     => api.get(`/accounts/${accountId}/transactions`),
-  updateName:      (id, name)      => api.patch(`/accounts/${id}`, { name }),
-  updateLimits:    (id, data)      => api.patch(`/accounts/${id}`, data),
-  createPayment:   (data)          => api.post('/payments', data),
+  // Employee: list all accounts (paginated, filterable)
+  getAll: (params) => api.get('/accounts', { params }),
+
+  // Client: create new bank account
+  create: (data) => api.post('/accounts', data),
+
+  // Update account name
+  updateName: (clientId, accountNumber, name) =>
+    api.put(`/clients/${clientId}/accounts/${accountNumber}/name`, { name }),
+
+  // Request limit change (sends OTP to client)
+  requestLimitChange: (clientId, accountNumber, data) =>
+    api.post(`/clients/${clientId}/accounts/${accountNumber}/limits/request`, data),
+
+  // Confirm limit change with OTP code
+  confirmLimitChange: (clientId, accountNumber, data) =>
+    api.put(`/clients/${clientId}/accounts/${accountNumber}/limits`, data),
 };

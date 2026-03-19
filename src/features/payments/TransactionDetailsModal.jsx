@@ -11,35 +11,32 @@ export default function TransactionDetailsModal({ transaction, onClose }) {
 
         <div className={styles.body}>
           {/* Račun platioca i Račun primaoca */}
-          <div className={styles.infoRow}><span>Račun platioca:</span><strong>{transaction.sender_account}</strong></div>
-          <div className={styles.infoRow}><span>Račun primaoca:</span><strong>{transaction.recipient_account}</strong></div>
-          
-          <hr className={styles.divider} />
-          
-          {/* Poziv na broj i Šifra plaćanja */}
-          <div className={styles.infoRow}><span>Šifra plaćanja:</span><strong>{transaction.paymentCode}</strong></div>
-          <div className={styles.infoRow}><span>Poziv na broj:</span><strong>({transaction.model}) {transaction.reference}</strong></div>
+          <div className={styles.infoRow}><span>Račun platioca:</span><strong>{transaction.payer_account_number ?? transaction.sender_account ?? '—'}</strong></div>
+          <div className={styles.infoRow}><span>Račun primaoca:</span><strong>{transaction.recipient_account_number ?? transaction.recipient_account ?? '—'}</strong></div>
 
           <hr className={styles.divider} />
 
-          {/* Iznos i obračunata Provizija (Dve decimale i valuta) */}
+          <div className={styles.infoRow}><span>Šifra plaćanja:</span><strong>{transaction.payment_code ?? transaction.paymentCode ?? '—'}</strong></div>
+          <div className={styles.infoRow}><span>Poziv na broj:</span><strong>{transaction.reference_number ?? transaction.reference ?? '—'}</strong></div>
+
+          <hr className={styles.divider} />
+
           <div className={styles.infoRow}>
             <span>Iznos:</span>
-            <strong>{transaction.amount.toLocaleString('sr-RS', { minimumFractionDigits: 2 })} {transaction.currency}</strong>
+            <strong>{Number(transaction.amount ?? 0).toLocaleString('sr-RS', { minimumFractionDigits: 2 })} {transaction.currency ?? ''}</strong>
           </div>
           <div className={styles.infoRow}>
             <span>Provizija:</span>
-            <strong>{transaction.fee.toLocaleString('sr-RS', { minimumFractionDigits: 2 })} {transaction.currency}</strong>
+            <strong>{Number(transaction.fee ?? 0).toLocaleString('sr-RS', { minimumFractionDigits: 2 })} {transaction.currency ?? ''}</strong>
           </div>
 
           <hr className={styles.divider} />
 
-          {/* Tačan Timestamp izvršenja */}
-          <div className={styles.infoRow}><span>Vreme izvršenja:</span><strong>{transaction.execution_timestamp}</strong></div>
-          
+          <div className={styles.infoRow}><span>Vreme izvršenja:</span><strong>{transaction.created_at ?? transaction.execution_timestamp ?? '—'}</strong></div>
+
           <div className={styles.infoRow}>
             <span>Status:</span>
-            <span className={`${styles.badge} ${styles['badge' + transaction.status.replace(/\s+/g, '')]}`}>{transaction.status}</span>
+            <span className={`${styles.badge} ${styles['badge' + (transaction.status ?? '').replace(/\s+/g, '')]}`}>{transaction.status ?? '—'}</span>
           </div>
         </div>
 

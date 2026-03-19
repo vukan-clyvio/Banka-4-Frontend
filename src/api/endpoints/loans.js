@@ -1,12 +1,19 @@
-
-import api from '../client';
+import { bankingApi as api } from '../client';
 
 export const loansApi = {
-  getAll:        ()       => api.get('/loans'),
-  getRequests:   (params) => api.get('/loan-requests', { params }),
-  approve:       (id)     => api.post(`/loan-requests/${id}/approve`),
-  reject:        (id)     => api.post(`/loan-requests/${id}/reject`),
-  updateRate:    (data)   => api.post('/loans/update-rate', data),
-  createRequest: (data)   => api.post('/loan-requests', data),
-};
+  // Client: list their loans (sortable by amount: asc/desc)
+  getMyLoans:    (clientId, params) => api.get(`/clients/${clientId}/loans`, { params }),
 
+  // Client: get loan details with repayment schedule
+  getLoanById:   (clientId, loanId) => api.get(`/clients/${clientId}/loans/${loanId}`),
+
+  // Client: submit loan request { account_number, amount, loan_type_id, repayment_period }
+  createRequest: (clientId, data)   => api.post(`/clients/${clientId}/loans/request`, data),
+
+  // Employee admin: list all loan requests (paginated)
+  getRequests: (params) => api.get('/loan-requests', { params }),
+
+  // Employee admin: approve / reject a loan request
+  approve: (id) => api.patch(`/loan-requests/${id}/approve`),
+  reject:  (id) => api.patch(`/loan-requests/${id}/reject`),
+};

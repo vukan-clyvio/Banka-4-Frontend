@@ -106,17 +106,9 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
       setError(null);
 
       try {
-        if (!user?.id) {
-          throw new Error('Korisnik nije učitan.');
-        }
-
-        const response = await cardsApi.getByUser(user.id);
-        const normalized = (Array.isArray(response) ? response : response?.items ?? []).map(normalizeCard);
-
-        if (!mounted) return;
-
-        const finalCards = normalized.length > 0 ? normalized : MOCK_CARDS.map(normalizeCard);
-        setCards(finalCards);
+        // Backend requires clientId + accountNumber to fetch cards.
+        // Without a selected account, fall back to mock data for display.
+        setCards(MOCK_CARDS.map(normalizeCard));
         setSelectedIndex(0);
       } catch (err) {
         if (!mounted) return;
@@ -161,22 +153,27 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
     setRequestModalOpen(true);
   }
 
-  function handleRequestContinue(formData) {
+  async function handleRequestContinue(formData) {
+    // Step 1: send card request — backend triggers OTP
+    try {
+      await cardsApi.request(formData);
+    } catch (err) {
+      setFeedback({ type: 'greska', text: err?.message || 'Slanje zahteva nije uspelo.' });
+      return;
+    }
     setPendingRequest(formData);
     setRequestModalOpen(false);
     setTwoFactorOpen(true);
   }
 
   async function handleConfirm2FA(code) {
-    if (!user?.id || !pendingRequest) return;
+    if (!pendingRequest) return;
 
     setSubmitting2FA(true);
 
     try {
-      await cardsApi.requestNew(user.id, {
-        ...pendingRequest,
-        verification_code: code,
-      });
+      // Step 2: confirm card request with OTP code
+      await cardsApi.confirmRequest({ code });
 
       const newCard = normalizeCard({
         id: Date.now(),
@@ -229,28 +226,6 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
       setFeedback({ type: 'uspeh', text: 'Akcija nad karticom je uspešno izvršena.' });
     } catch (err) {
       setFeedback({ type: 'greska', text: err?.message || 'Akcija trenutno nije uspela.' });
-    }
-  }
-
-  async function handleSaveLimits(cardId, payload) {
-    try {
-      await cardsApi.updateLimits(cardId, payload);
-
-      setCards((prev) =>
-        prev.map((card) =>
-          card.id === cardId
-            ? {
-                ...card,
-                limitDaily: payload.daily_limit,
-                limitMonthly: payload.monthly_limit,
-              }
-            : card
-        )
-      );
-
-      setFeedback({ type: 'uspeh', text: 'Limiti su sačuvani.' });
-    } catch (err) {
-      setFeedback({ type: 'greska', text: err?.message || 'Čuvanje limita nije uspelo.' });
     }
   }
 
@@ -406,7 +381,6 @@ export default function CardsPage({ portalType = PORTAL_TYPE.CLIENT }) {
               card={selectedCard}
               portalType={portalType}
               onAction={handleAction}
-              onSaveLimits={handleSaveLimits}
               onBack={goBackToOverview}
             />
           </section>

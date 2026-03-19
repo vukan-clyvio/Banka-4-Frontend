@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { useFetch } from '../../hooks/useFetch';
 import { paymentsApi } from '../../api/endpoints/payments';
+import { useAuthStore } from '../../store/authStore';
 import Navbar from '../../components/layout/Navbar';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
@@ -12,6 +13,7 @@ import styles from './EmployeeList.module.css';
 
 export default function PaymentOverview() {
   const pageRef = useRef(null);
+  const clientId = useAuthStore(s => s.user?.id);
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from('.page-anim', {
@@ -49,9 +51,9 @@ export default function PaymentOverview() {
         type: activeTab === 'payments' ? 'payment' : 'exchange',
         ...filters // <--- Šalje SVE: status, dateFrom, dateTo, itd.
       };
-      return paymentsApi.getAll(params);
+      return paymentsApi.getAll(clientId, params);
     },
-    [activeTab, page, filters] // Osvežava se na svaku promenu filtera
+    [activeTab, page, filters, clientId] // Osvežava se na svaku promenu filtera
   );
 
   function handleFilterChange(newFilters) {

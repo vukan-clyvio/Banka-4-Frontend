@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { accountsApi } from '../../api/endpoints/accounts';
+import { useAuthStore } from '../../store/authStore';
 import styles from './AccountDetailsModal.module.css';
 
 export default function AccountDetailsModal({ open, onClose, account, onAccountUpdated }) {
-  const [view, setView] = useState('details'); // details | payment | rename | limits
+  const clientId = useAuthStore(s => s.user?.id);
+  const [view, setView] = useState('details'); // details | rename | limits
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Payment form state
-  const [payRecipient, setPayRecipient] = useState('');
-  const [payAccount, setPayAccount] = useState('');
-  const [payAmount, setPayAmount] = useState('');
-  const [payPurpose, setPayPurpose] = useState('');
 
   // Rename form state
   const [newName, setNewName] = useState('');
@@ -53,22 +49,14 @@ export default function AccountDetailsModal({ open, onClose, account, onAccountU
     setView('limits');
   }
 
-  function openPayment() {
-    setPayRecipient('');
-    setPayAccount('');
-    setPayAmount('');
-    setPayPurpose('');
-    setError('');
-    setView('payment');
-  }
-
   async function submitRename(e) {
     e.preventDefault();
     if (!newName.trim()) return;
     setLoading(true);
     setError('');
     try {
-      await accountsApi.updateName(account.account_id, newName.trim());
+      const accountNumber = account.account_number ?? account.number;
+      await accountsApi.updateName(clientId, accountNumber, newName.trim());
       onAccountUpdated?.();
       setView('details');
     } catch (err) {
@@ -84,8 +72,10 @@ export default function AccountDetailsModal({ open, onClose, account, onAccountU
     setLoading(true);
     setError('');
     try {
-      await accountsApi.updateLimits(account.account_id, {
-        daily_limit: parseFloat(dailyLimit),
+      const accountNumber = account.account_number ?? account.number;
+      // Step 1: request limit change — backend sends OTP to client
+      await accountsApi.requestLimitChange(clientId, accountNumber, {
+        daily_limit:   parseFloat(dailyLimit),
         monthly_limit: parseFloat(monthlyLimit),
       });
       onAccountUpdated?.();
@@ -97,35 +87,12 @@ export default function AccountDetailsModal({ open, onClose, account, onAccountU
     }
   }
 
-  async function submitPayment(e) {
-    e.preventDefault();
-    if (!payRecipient || !payAccount || !payAmount) return;
-    setLoading(true);
-    setError('');
-    try {
-      await accountsApi.createPayment({
-        sender_account_id: account.account_id,
-        recipient_name: payRecipient,
-        recipient_account: payAccount,
-        amount: parseFloat(payAmount),
-        purpose: payPurpose,
-      });
-      onAccountUpdated?.();
-      setView('details');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Greška pri plaćanju');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <div className={styles.backdrop} onClick={handleClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h3 className={styles.title}>
             {view === 'details' && 'Detalji računa'}
-            {view === 'payment' && 'Novo plaćanje'}
             {view === 'rename' && 'Promeni naziv'}
             {view === 'limits' && 'Promeni limite'}
           </h3>
@@ -183,32 +150,6 @@ export default function AccountDetailsModal({ open, onClose, account, onAccountU
             </>
           )}
 
-          {/* ─── Payment form ─── */}
-          {view === 'payment' && (
-            <div className={styles.form}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Sa računa</label>
-                <div className={styles.formStatic}>{account.account_number} ({fmt(account.available_balance)} {account.currency})</div>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Primalac</label>
-                <input className={styles.formInput} value={payRecipient} onChange={e => setPayRecipient(e.target.value)} placeholder="Ime primaoca" required />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Račun primaoca</label>
-                <input className={styles.formInput} value={payAccount} onChange={e => setPayAccount(e.target.value)} placeholder="000-0000000000-00" required />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Iznos ({account.currency})</label>
-                <input className={styles.formInput} type="number" step="0.01" min="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} placeholder="0.00" required />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>Svrha plaćanja</label>
-                <input className={styles.formInput} value={payPurpose} onChange={e => setPayPurpose(e.target.value)} placeholder="Opis plaćanja" />
-              </div>
-            </div>
-          )}
-
           {/* ─── Rename form ─── */}
           {view === 'rename' && (
             <div className={styles.form}>
@@ -237,18 +178,11 @@ export default function AccountDetailsModal({ open, onClose, account, onAccountU
         {/* ─── Sticky action buttons ─── */}
         {view === 'details' && (
           <div className={styles.actions}>
-            <button className={styles.btnPrimary} style={{width:'100%',justifyContent:'center'}} onClick={openPayment}>Novo plaćanje</button>
             <div className={styles.actionsRow}>
               <button className={styles.btnOutline} onClick={openRename}>Promeni naziv</button>
               <button className={styles.btnOutline} onClick={openLimits}>Promeni limite</button>
               <button className={styles.btnGhost} onClick={handleClose}>Zatvori</button>
             </div>
-          </div>
-        )}
-        {view === 'payment' && (
-          <div className={styles.actions}>
-            <button className={styles.btnPrimary} style={{width:'100%',justifyContent:'center'}} disabled={loading} onClick={submitPayment}>{loading ? 'Slanje...' : 'Pošalji'}</button>
-            <div className={styles.actionsRow}><button className={styles.btnGhost} onClick={() => setView('details')}>Nazad</button></div>
           </div>
         )}
         {view === 'rename' && (

@@ -32,23 +32,12 @@ export default function Accounts() {
   // Fetch accounts on mount
   useEffect(() => {
     let cancelled = false;
-    accountsApi.getMyAccounts()
-      .then(res => { if (!cancelled) setAccounts(res.data); })
+    accountsApi.getAll()
+      .then(res => { if (!cancelled) setAccounts(res.data ?? []); })
       .catch(err => { if (!cancelled) setError(err?.response?.data?.error ?? 'Greška pri učitavanju računa.'); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; reset(); };
   }, []);
-
-  // Fetch transactions when selected account changes
-  useEffect(() => {
-    if (!selectedAccountId) return;
-    let cancelled = false;
-    useAccountStore.setState({ transactionsLoading: true });
-    accountsApi.getTransactions(selectedAccountId)
-      .then(res => { if (!cancelled) setTransactions(res.data); })
-      .catch(() => { if (!cancelled) setTransactions([]); });
-    return () => { cancelled = true; };
-  }, [selectedAccountId]);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -111,8 +100,8 @@ export default function Accounts() {
         onClose={() => setModalAccount(null)}
         account={modalAccount}
         onAccountUpdated={() => {
-          accountsApi.getMyAccounts()
-            .then(res => setAccounts(res.data))
+          accountsApi.getAll()
+            .then(res => setAccounts(res.data ?? []))
             .catch(() => {});
           setModalAccount(null);
         }}

@@ -26,14 +26,9 @@ export default function Loans() {
   const [actionId, setActionId]         = useState(null);
 
   useEffect(() => {
-    loansApi.getAll()
-      .then(res => {
-        const data = res.data ?? [];
-        setLoans(data);
-        if (data.length > 0) setSelectedLoan(data[0]);
-      })
-      .catch(() => setErrorLoans('Nije moguće učitati kredite.'))
-      .finally(() => setLoadingLoans(false));
+    // Endpoint for listing all active loans across clients is not yet available in the backend.
+    // This tab will show an empty state until the backend adds a GET /loans employee endpoint.
+    setLoadingLoans(false);
   }, []);
 
   useEffect(() => {

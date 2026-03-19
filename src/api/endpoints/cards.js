@@ -1,12 +1,18 @@
-import api from '../client';
+import { bankingApi as api } from '../client';
 
 export const cardsApi = {
-  getById: (id) => api.get(`/cards/${id}`),
-  getByUser: (userId) => api.get(`/cards/user/${userId}`),
-  updateLimits: (id, payload) => api.patch(`/cards/${id}/limits`, payload),
-  block: (id) => api.patch(`/cards/${id}/block`),
-  unblock: (id) => api.patch(`/cards/${id}/unblock`),
-  deactivate: (id) => api.patch(`/cards/${id}/deactivate`),
-  requestNew: (userId, data) => api.post(`/cards/user/${userId}/request`, data),
-  getAll:   (params)     => api.get('/cards', { params }),
+  // List cards for a specific client account
+  getByAccount: (clientId, accountNumber) =>
+    api.get(`/clients/${clientId}/accounts/${accountNumber}/cards`),
+
+  // Request new card (triggers OTP)
+  request: (data) => api.post('/cards/request', data),
+
+  // Confirm card request with OTP code
+  confirmRequest: (data) => api.post('/cards/request/confirm', data),
+
+  // Block/unblock/deactivate (backend uses PUT)
+  block:      (cardId) => api.put(`/cards/${cardId}/block`),
+  unblock:    (cardId) => api.put(`/cards/${cardId}/unblock`),
+  deactivate: (cardId) => api.put(`/cards/${cardId}/deactivate`),
 };

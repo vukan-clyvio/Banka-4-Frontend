@@ -19,8 +19,8 @@ export default function ClientTable({ clients, onRowClick }) {
           </tr>
         </thead>
         <tbody>
-          {clients.map(client => (
-            <tr key={client.id} onClick={() => onRowClick?.(client.id)}>
+          {clients.map((client, i) => (
+            <tr key={client.id ?? client.email ?? i} onClick={() => onRowClick?.(client.id)}>
               <td className={styles.name}>{client.first_name}</td>
               <td className={styles.name}>{client.last_name}</td>
               <td className={styles.email}>{client.email}</td>

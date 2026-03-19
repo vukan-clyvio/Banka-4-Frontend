@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate }                        from 'react-router-dom';
 import gsap                                   from 'gsap';
 import { accountsApi }                        from '../../api/endpoints/accounts';
+import { clientsApi }                         from '../../api/endpoints/clients';
 import { jeObavezno, jeValidanEmail }         from '../../utils/helpers';
 import Navbar                                 from '../../components/layout/Navbar';
 import Alert                                  from '../../components/ui/Alert';
@@ -163,16 +164,16 @@ export default function NewAccount() {
       let clientId = existingClient?.id ?? null;
 
       if (clientMode === 'new') {
-        const created = await accountsApi.createClient({
+        const created = await clientsApi.create({
           first_name: newClientData.first_name,
           last_name:  newClientData.last_name,
           email:      newClientData.email,
           jmbg:       newClientData.jmbg,
         });
-        clientId = created.id;
+        clientId = created?.data?.id ?? created?.id;
       }
 
-      await accountsApi.createAccount({
+      await accountsApi.create({
         client_id:       clientId,
         account_type:    accountData.account_type,
         currency:        accountData.currency,

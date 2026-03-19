@@ -1,7 +1,7 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate }                        from 'react-router-dom';
 import gsap                                   from 'gsap';
-import { authApi }                            from '../../api/endpoints/auth';
+import { employeesApi }                       from '../../api/endpoints/employees';
 import { jeObavezno, jeValidanEmail, jeValidanTelefon } from '../../utils/helpers';
 import Navbar                                 from '../../components/layout/Navbar';
 import Alert                                  from '../../components/ui/Alert';
@@ -108,11 +108,7 @@ export default function NewEmployee() {
 
     setErrors(e);
 
-    if (Object.keys(e).length > 0) {
-      console.log("Pronađene greške pri validaciji:", e);
-    }
-
-    return Object.keys(e).length === 0; // Vraća true samo ako je 'e' prazan
+    return Object.keys(e).length === 0;
   }
 
 
@@ -134,13 +130,9 @@ export default function NewEmployee() {
         date_of_birth: formattedDate
       };
 
-      console.log("Šaljem payload u Go backend:", payload);
-
-      await authApi.register(payload);
+      await employeesApi.create(payload);
       navigate('/employees');
     } catch (err) {
-      console.error("Backend odbio podatke:", err);
-      // Prikazujemo poruku koju je Go vratio (ako postoji)
       setApiError(err.message || err.error || 'Greška u komunikaciji sa serverom.');
     } finally {
       setSubmitting(false);

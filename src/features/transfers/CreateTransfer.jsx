@@ -3,122 +3,64 @@ import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useFetch } from '../../hooks/useFetch';
-import { useDebounce } from '../../hooks/useDebounce';
-import { transfersApi } from '../../api/endpoints/transfers';
+import { clientApi } from '../../api/endpoints/client';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
 import styles from './transfers.module.css';
 import { useAuthStore } from '../../store/authStore';
 
+function fmt(amount, currency) {
+    return Number(amount || 0).toLocaleString('sr-RS', { minimumFractionDigits: 2 }) + ' ' + (currency ?? '');
+}
+
 export default function CreateTransfer() {
     const pageRef = useRef(null);
     const navigate = useNavigate();
     const user = useAuthStore(s => s.user);
+    const clientId = user?.id;
 
     const { data: accountsRes, loading, error } =
-        useFetch(() => transfersApi.getMyAccounts());
+        useFetch(() => clientApi.getAccounts(clientId), [clientId]);
 
-    const accounts = accountsRes?.data || [];
+    const accounts = accountsRes?.data ?? [];
 
-    const [fromAccount, setFromAccount] = useState(null);
-    const [toAccount, setToAccount] = useState(null);
-    const [amount, setAmount] = useState('');
-    const [preview, setPreview] = useState(null);
-    const [previewLoading, setPreviewLoading] = useState(false);
-    const [previewError, setPreviewError] = useState(null);
+    const [fromAccNum, setFromAccNum] = useState('');
+    const [toAccNum,   setToAccNum]   = useState('');
+    const [amount,     setAmount]     = useState('');
 
-    const debouncedAmount = useDebounce(amount, 600);
+    const fromAccount = accounts.find(a => (a.account_number ?? a.number) === fromAccNum) ?? null;
+    const toAccount   = accounts.find(a => (a.account_number ?? a.number) === toAccNum)   ?? null;
 
     const parsedAmount = parseFloat(amount);
-    const parsedDebounced = parseFloat(debouncedAmount);
 
     useLayoutEffect(() => {
         const ctx = gsap.context(() => {
             gsap.from('.page-anim', {
-                opacity: 0,
-                y: 24,
-                duration: 0.45,
-                stagger: 0.08,
-                ease: 'power2.out',
+                opacity: 0, y: 24, duration: 0.45, stagger: 0.08, ease: 'power2.out',
             });
         }, pageRef);
         return () => ctx.revert();
     }, []);
 
-    //  RESET TO ACCOUNT kad promeniš FROM
-    useEffect(() => {
-        setToAccount(null);
-    }, [fromAccount]);
+    // Reset TO when FROM changes
+    useEffect(() => { setToAccNum(''); }, [fromAccNum]);
 
-    //  PREVIEW
-    useEffect(() => {
-        if (
-            !fromAccount ||
-            !toAccount ||
-            isNaN(parsedDebounced) ||
-            parsedDebounced <= 0
-        ) {
-            setPreview(null);
-            setPreviewError(null);
-            return;
-        }
-
-        //  nema dovoljno sredstava → ne zovi backend
-        if (parsedDebounced > fromAccount.stanje) {
-            setPreview(null);
-            setPreviewError('Nedovoljno sredstava');
-            return;
-        }
-
-        const fetchPreview = async () => {
-            setPreviewLoading(true);
-            setPreviewError(null);
-
-            try {
-                const res = await transfersApi.getPreview({
-                    fromAccountId: fromAccount.id,
-                    toAccountId: toAccount.id,
-                    amount: parsedDebounced,
-                });
-
-                const previewData = res?.data?.data || res?.data;
-                setPreview(previewData);
-
-            } catch (err) {
-                const msg =
-                    err?.response?.data?.message ||
-                    err?.response?.data?.error ||
-                    'Greška pri dohvatanju kursa';
-
-                setPreviewError(msg);
-                setPreview(null);
-            } finally {
-                setPreviewLoading(false);
-            }
-        };
-
-        fetchPreview();
-    }, [fromAccount, toAccount, parsedDebounced]);
-
-    //  VALIDACIJA
     const canProceed =
         fromAccount &&
         toAccount &&
-        fromAccount.id !== toAccount.id &&
+        fromAccNum !== toAccNum &&
         !isNaN(parsedAmount) &&
         parsedAmount > 0 &&
-        parsedAmount <= fromAccount.stanje;
+        parsedAmount <= (fromAccount?.balance ?? Infinity);
 
     const handleNext = () => {
         if (!canProceed) return;
-
         navigate('/transfers/confirm', {
             state: {
                 fromAccount,
                 toAccount,
                 amount: parsedAmount,
-                preview,
-                userName: `${user?.first_name} ${user?.last_name}`,
+                userName: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim(),
             },
         });
     };
@@ -135,50 +77,39 @@ export default function CreateTransfer() {
                     <h1 className={styles.pageTitle}>Kreiraj transfer</h1>
                 </div>
 
-
                 <div className={`page-anim ${styles.card}`}>
 
                     {/* FROM */}
                     <div className={styles.field}>
                         <label>Izvor račun</label>
-                        <select
-                            value={fromAccount?.id || ''}
-                            onChange={e =>
-                                setFromAccount(
-                                    accounts.find(a => a.id === +e.target.value)
-                                )
-                            }
-                        >
+                        <select value={fromAccNum} onChange={e => setFromAccNum(e.target.value)}>
                             <option value="">Izaberi račun...</option>
-                            {accounts.map(acc => (
-                                <option key={acc.id} value={acc.id}>
-                                    {acc.broj} — {acc.valuta} (
-                                    {acc.stanje.toLocaleString('sr-RS')} {acc.valuta})
-                                </option>
-                            ))}
+                            {accounts.map(acc => {
+                                const num = acc.account_number ?? acc.number;
+                                return (
+                                    <option key={num} value={num}>
+                                        {acc.name ?? num} — {fmt(acc.balance, acc.currency)}
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
                     {/* TO */}
                     <div className={styles.field}>
                         <label>Odredišni račun</label>
-                        <select
-                            value={toAccount?.id || ''}
-                            onChange={e =>
-                                setToAccount(
-                                    accounts.find(a => a.id === +e.target.value)
-                                )
-                            }
-                        >
+                        <select value={toAccNum} onChange={e => setToAccNum(e.target.value)}>
                             <option value="">Izaberi račun...</option>
                             {accounts
-                                .filter(a => a.id !== fromAccount?.id)
-                                .map(acc => (
-                                    <option key={acc.id} value={acc.id}>
-                                        {acc.broj} — {acc.valuta} (
-                                        {acc.stanje.toLocaleString('sr-RS')} {acc.valuta})
-                                    </option>
-                                ))}
+                                .filter(a => (a.account_number ?? a.number) !== fromAccNum)
+                                .map(acc => {
+                                    const num = acc.account_number ?? acc.number;
+                                    return (
+                                        <option key={num} value={num}>
+                                            {acc.name ?? num} — {fmt(acc.balance, acc.currency)}
+                                        </option>
+                                    );
+                                })}
                         </select>
                     </div>
 
@@ -189,37 +120,14 @@ export default function CreateTransfer() {
                             type="number"
                             step="any"
                             min="0"
-                            max={fromAccount?.stanje || undefined}
+                            max={fromAccount?.balance ?? undefined}
                             value={amount}
                             onChange={e => setAmount(e.target.value)}
                             placeholder="0.00"
                         />
                     </div>
 
-                    {/* INFO BLOK */}
-                    {fromAccount && toAccount && fromAccount.valuta !== toAccount.valuta && (
-                        <div className={styles.infoBlock}>
-                            {previewLoading && <Spinner size="small" />}
-
-                            {previewError && (
-                                <Alert tip="greska" poruka={previewError} />
-                            )}
-
-                            {!previewLoading && preview && (
-                                <>
-                                    <strong>Informativni kurs:</strong>{' '}
-                                    1 {fromAccount.valuta} ={' '}
-                                    {Number(preview.kurs).toFixed(2)} {toAccount.valuta}
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    <button
-                        className={styles.btnPrimary}
-                        onClick={handleNext}
-                        disabled={!canProceed}
-                    >
+                    <button className={styles.btnPrimary} onClick={handleNext} disabled={!canProceed}>
                         Pregledaj i potvrdi transfer
                     </button>
                 </div>

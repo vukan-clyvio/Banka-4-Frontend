@@ -3,6 +3,7 @@ import {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFetch } from '../../hooks/useFetch';
 import { transfersApi } from '../../api/endpoints/transfers';
+import { useAuthStore } from '../../store/authStore';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
 import styles from './transfers.module.css';
@@ -12,9 +13,10 @@ import gsap from "gsap";
 export default function TransfersHistory() {
     const pageRef = useRef(null);
     const navigate = useNavigate();
+    const clientId = useAuthStore(s => s.user?.id);
 
     const { data: transfersRes, loading, error } =
-        useFetch(() => transfersApi.getHistory());
+        useFetch(() => transfersApi.getHistory(clientId), [clientId]);
 
 
 
@@ -111,23 +113,23 @@ export default function TransfersHistory() {
                                 <tbody>
                                 {transfers.map((t) => (
                                     <tr
-                                        key={t.id || t.transactionId}
+                                        key={t.transfer_id ?? t.id ?? t.transactionId}
                                         className={styles.row}
                                         onClick={() => setSelectedTransfer(t)}
                                     >
-                                        <td>{formatDate(t.date || t.date)}</td>
+                                        <td>{formatDate(t.created_at ?? t.date)}</td>
                                         <td>
                                             <div className={styles.accountPair}>
-                                                <span className={styles.fromAcc}>{t.fromAccountNumber}</span>
+                                                <span className={styles.fromAcc}>{t.from_account_number ?? t.fromAccountNumber}</span>
                                                 <span className={styles.arrow}>→</span>
-                                                <span className={styles.toAcc}>{t.toAccountNumber}</span>
+                                                <span className={styles.toAcc}>{t.to_account_number ?? t.toAccountNumber}</span>
                                             </div>
                                         </td>
                                         <td className={styles.amountCell}>
-                                            {formatAmount(t.initialAmount, t.fromCurrency)}
+                                            {formatAmount(t.initial_amount ?? t.initialAmount, t.exchange_rate ? '' : '')}
                                         </td>
                                         <td className={styles.amountCell}>
-                                            {formatAmount(t.finalAmount, t.toCurrency)}
+                                            {formatAmount(t.final_amount ?? t.finalAmount, '')}
                                         </td>
                                         <td>
                         <span className={styles.status}>

@@ -1,9 +1,9 @@
 // src/features/transfers/ConfirmTransfer.jsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
 import { transfersApi } from '../../api/endpoints/transfers';
+import { useAuthStore } from '../../store/authStore';
 import styles from './transfers.module.css';
 
 function VerifyModal({ open, onClose, onConfirm, loading }) {
@@ -63,6 +63,7 @@ function VerifyModal({ open, onClose, onConfirm, loading }) {
 export default function ConfirmTransfer() {
     const navigate = useNavigate();
     const { state } = useLocation();
+    const clientId = useAuthStore(s => s.user?.id);
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
@@ -83,26 +84,28 @@ export default function ConfirmTransfer() {
         fromAccount,
         toAccount,
         amount,
-        preview,
         userName,
     } = state;
 
     const numericAmount = parseFloat(amount) || 0;
+    const finalAmount   = numericAmount;
 
-    const isExchange = fromAccount.valuta !== toAccount.valuta;
-
-    const finalAmount =
-        preview?.finalAmount ?? numericAmount;
+    const fromCurrency = fromAccount.currency ?? fromAccount.valuta;
+    const toCurrency   = toAccount.currency   ?? toAccount.valuta;
+    const fromBalance  = fromAccount.balance  ?? fromAccount.stanje ?? 0;
+    const toBalance    = toAccount.balance    ?? toAccount.stanje   ?? 0;
+    const fromNum      = fromAccount.account_number ?? fromAccount.number ?? fromAccount.broj;
+    const toNum        = toAccount.account_number   ?? toAccount.number   ?? toAccount.broj;
 
     const handleConfirm = async (_code) => {
         setSubmitting(true);
         setError(null);
 
         try {
-            await transfersApi.execute({
-                fromAccountId: fromAccount.id,
-                toAccountId: toAccount.id,
-                amount: numericAmount,
+            await transfersApi.execute(clientId, {
+                from_account: fromNum,
+                to_account:   toNum,
+                amount:       numericAmount,
             });
 
             setShowVerify(false);
@@ -165,10 +168,10 @@ export default function ConfirmTransfer() {
                             <div className={styles.summaryItem}>
                                 <span className={styles.label}>Iz računa</span>
                                 <span className={styles.value}>
-                                    {fromAccount.broj} ({fromAccount.valuta})
+                                    {fromNum} ({fromCurrency})
                                     <br />
                                     <small>
-                                        Stanje: {fromAccount.stanje.toLocaleString('sr-RS')} {fromAccount.valuta}
+                                        Stanje: {fromBalance.toLocaleString('sr-RS')} {fromCurrency}
                                     </small>
                                 </span>
                             </div>
@@ -177,10 +180,10 @@ export default function ConfirmTransfer() {
                             <div className={styles.summaryItem}>
                                 <span className={styles.label}>Na račun</span>
                                 <span className={styles.value}>
-                                    {toAccount.broj} ({toAccount.valuta})
+                                    {toNum} ({toCurrency})
                                     <br />
                                     <small>
-                                        Stanje: {toAccount.stanje.toLocaleString('sr-RS')} {toAccount.valuta}
+                                        Stanje: {toBalance.toLocaleString('sr-RS')} {toCurrency}
                                     </small>
                                 </span>
                             </div>
@@ -191,42 +194,20 @@ export default function ConfirmTransfer() {
                                 <span className={styles.valueBig}>
                                     {numericAmount.toLocaleString('sr-RS', {
                                         minimumFractionDigits: 2,
-                                    })} {fromAccount.valuta}
+                                    })} {fromCurrency}
                                 </span>
                             </div>
-
-                            {/* MENJAČKA LOGIKA */}
-                            {isExchange && preview && (
-                                <>
-                                    <div className={styles.summaryItem}>
-                                        <span className={styles.label}>Kurs</span>
-                                        <span className={styles.value}>
-                                            1 {fromAccount.valuta} = {Number(preview.kurs).toFixed(4)} {toAccount.valuta}
-                                        </span>
-                                    </div>
-
-                                    <div className={styles.summaryItem}>
-                                        <span className={styles.label}>Provizija</span>
-                                        <span className={styles.value}>
-                                            {preview.commission?.toLocaleString('sr-RS', {
-                                                minimumFractionDigits: 2,
-                                            })} {fromAccount.valuta}
-                                        </span>
-                                    </div>
-                                </>
-                            )}
 
                             {/* FINAL */}
                             <div className={`${styles.summaryItem} ${styles.finalRow}`}>
                                 <span className={styles.label}>
                                     Konačni iznos koji stiže
                                 </span>
-
                                 <span className={styles.finalAmount}>
                                     {Number(finalAmount).toLocaleString('sr-RS', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
-                                    })} {toAccount.valuta}
+                                    })} {toCurrency}
                                 </span>
                             </div>
                         </div>

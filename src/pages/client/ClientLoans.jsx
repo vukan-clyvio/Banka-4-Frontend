@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { clientApi } from '../../api/endpoints/client';
 import { loansApi } from '../../api/endpoints/loans';
+import { useAuthStore } from '../../store/authStore';
 import { useFetch } from '../../hooks/useFetch';
 import LoanList    from '../../features/loans/LoanList';
 import LoanDetails from '../../features/loans/LoanDetails';
@@ -20,9 +21,14 @@ function formatAmount(n) {
   return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: 2 }).format(n) + ' RSD';
 }
 
+// Mapping from loan type string to backend loan_type_id.
+// Update these IDs to match the actual values from the backend.
+const LOAN_TYPE_IDS = { CASH: 1, AUTO: 2, MORTGAGE: 3 };
+
 export default function ClientLoans() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
+  const clientId = useAuthStore(s => s.user?.id);
 
   const [selectedLoan, setSelectedLoan] = useState(null);
 
@@ -36,10 +42,10 @@ export default function ClientLoans() {
   const [amount, setAmount]                       = useState('');
   const [period, setPeriod]                       = useState('');
 
-  const { data: loansData, loading, error } = useFetch(() => loansApi.getAll(), []);
+  const { data: loansData, loading, error } = useFetch(() => loansApi.getMyLoans(clientId), [clientId]);
   const loans = loansData?.data ?? [];
 
-  const { data: accountsData } = useFetch(() => clientApi.getAccounts(), []);
+  const { data: accountsData } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
   const accounts = accountsData?.data ?? [];
 
   // Auto-select first loan
@@ -58,11 +64,11 @@ export default function ClientLoans() {
 
   const selectedLoanType = LOAN_TYPES.find(t => t.value === loanType);
   const maxMonths = selectedLoanType?.maxMonths ?? 84;
-  const selectedAccount = accounts.find(a => String(a.id) === String(selectedAccountId));
+  const selectedAccount = accounts.find(a => (a.account_number ?? a.number) === selectedAccountId);
 
   function openForm() {
     setLoanType('CASH');
-    setSelectedAccountId(accounts[0]?.id ? String(accounts[0].id) : '');
+    setSelectedAccountId(accounts[0]?.account_number ?? accounts[0]?.number ?? '');
     setAmount('');
     setPeriod('');
     setFormError('');
@@ -86,10 +92,9 @@ export default function ClientLoans() {
 
     setSubmitting(true);
     try {
-      await loansApi.createRequest({
-        loan_type:        loanType,
-        account_id:       selectedAccount.id,
-        currency:         selectedAccount.currency,
+      await loansApi.createRequest(clientId, {
+        loan_type_id:     LOAN_TYPE_IDS[loanType],
+        account_number:   selectedAccount.account_number ?? selectedAccount.number,
         amount:           Number(amount),
         repayment_period: numPeriod,
       });
@@ -156,11 +161,14 @@ export default function ClientLoans() {
                   <label>Račun za kredit</label>
                   <select className={styles.formInput} value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setFormError(''); }}>
                     <option value="">Izaberite račun...</option>
-                    {accounts.map(a => (
-                      <option key={a.id} value={a.id}>
-                        {a.name} — {formatAmount(a.balance)} ({a.currency})
-                      </option>
-                    ))}
+                    {accounts.map(a => {
+                      const accNum = a.account_number ?? a.number;
+                      return (
+                        <option key={accNum} value={accNum}>
+                          {a.name} — {formatAmount(a.balance)} ({a.currency})
+                        </option>
+                      );
+                    })}
                   </select>
                   {selectedAccount && (
                     <span style={{ fontSize: 12, color: 'var(--tx-3)', marginTop: 3 }}>
