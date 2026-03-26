@@ -36,7 +36,7 @@ function statusLabel(status) {
 export default function ClientCards() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
-  const clientId = useAuthStore(s => s.user?.id);
+  const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
   // First fetch accounts, then cards per account
   const { data: accountsData, loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);

@@ -25,6 +25,7 @@ function RenamePopup({ account, clientId, onSaved, onClose }) {
   const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   async function handleSave() {
     const trimmed = newName.trim();
@@ -32,7 +33,8 @@ function RenamePopup({ account, clientId, onSaved, onClose }) {
     try {
       setSaving(true);
       await accountsApi.updateName(clientId, account.account_number, trimmed);
-      onSaved(trimmed);
+      setSuccess(true);
+      setTimeout(() => onSaved(trimmed), 1500);
     } catch (err) {
       setError(err?.message ?? err?.error ?? 'Greška pri promeni naziva.');
     } finally {
@@ -48,27 +50,36 @@ function RenamePopup({ account, clientId, onSaved, onClose }) {
           <button className={styles.modalClose} onClick={onClose}>✕</button>
         </div>
         <div className={styles.modalBody}>
-          <div className={styles.formField}>
-            <label>Trenutni naziv</label>
-            <input type="text" className={styles.formInput} value={account.name} readOnly />
-          </div>
-          <div className={styles.formField}>
-            <label>Novo ime računa</label>
-            <input
-              type="text"
-              className={styles.formInput}
-              placeholder="Unesite novi naziv"
-              value={newName}
-              onChange={e => { setNewName(e.target.value); if (error) setError(''); }}
-            />
-          </div>
-          {error && <p className={styles.errorMsg}>{error}</p>}
-          <div className={styles.modalActions}>
-            <button className={styles.btnGhost} onClick={onClose}>Odustani</button>
-            <button className={styles.btnPrimary} disabled={saving} onClick={handleSave}>
-              {saving ? 'Čuvanje...' : 'Sačuvaj'}
-            </button>
-          </div>
+          {success ? (
+            <div className={styles.successMsg}>
+              <div className={styles.successIcon}>✓</div>
+              <p>Naziv računa je uspešno promenjen!</p>
+            </div>
+          ) : (
+            <>
+              <div className={styles.formField}>
+                <label>Trenutni naziv</label>
+                <input type="text" className={styles.formInput} value={account.name} readOnly />
+              </div>
+              <div className={styles.formField}>
+                <label>Novo ime računa</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder="Unesite novi naziv"
+                  value={newName}
+                  onChange={e => { setNewName(e.target.value); if (error) setError(''); }}
+                />
+              </div>
+              {error && <p className={styles.errorMsg}>{error}</p>}
+              <div className={styles.modalActions}>
+                <button className={styles.btnGhost} onClick={onClose}>Odustani</button>
+                <button className={styles.btnPrimary} disabled={saving} onClick={handleSave}>
+                  {saving ? 'Čuvanje...' : 'Sačuvaj'}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -295,7 +306,7 @@ function DetailRow({ label, value, highlight }) {
 export default function ClientAccounts() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
-  const clientId = useAuthStore(s => s.user?.id);
+  const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
   const { data: accountsData, loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
   const rawAccounts = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
@@ -303,14 +314,27 @@ export default function ClientAccounts() {
   const [localAccounts, setLocalAccounts] = useState([]);
   useEffect(() => { setLocalAccounts(rawAccounts); }, [rawAccounts]);
 
-  // Filter active + sort by balance desc
+  const [accountSortBy, setAccountSortBy] = useState('balance');
+
+  // Filter active + sort by criteria
   const accounts = useMemo(() => {
     const active = localAccounts.filter(a => {
       const st = (a.status ?? '').toUpperCase();
       return !st || st === 'ACTIVE' || st === 'AKTIVNA' || st === 'AKTIVAN';
     });
-    return [...active].sort((a, b) => (b.balance ?? 0) - (a.balance ?? 0));
-  }, [localAccounts]);
+    return [...active].sort((a, b) => {
+      if (accountSortBy === 'balance') return (b.balance ?? 0) - (a.balance ?? 0);
+      if (accountSortBy === 'available') {
+        const availA = (a.balance ?? 0) - (a.reserved_funds ?? 0);
+        const availB = (b.balance ?? 0) - (b.reserved_funds ?? 0);
+        return availB - availA;
+      }
+      if (accountSortBy === 'name') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      return 0;
+    });
+  }, [localAccounts, accountSortBy]);
 
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [detailsAccount, setDetailsAccount] = useState(null);
@@ -383,6 +407,14 @@ export default function ClientAccounts() {
         <div className={styles.masterDetail}>
           {/* MASTER — Account Cards */}
           <div className={styles.accountsPanel}>
+            <div className={styles.sortGroup} style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span className={styles.sortLabel}>Sortiraj račune:</span>
+              <select className={styles.sortSelect} value={accountSortBy} onChange={e => setAccountSortBy(e.target.value)}>
+                <option value="balance">Po ukupnom stanju</option>
+                <option value="available">Po raspoloživom stanju</option>
+                <option value="name">Po nazivu</option>
+              </select>
+            </div>
             {accounts.map((acc, i) => (
               <div
                 key={acc.account_number ?? acc.id}

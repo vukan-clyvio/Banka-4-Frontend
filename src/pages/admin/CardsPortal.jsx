@@ -3,12 +3,14 @@ import gsap                                   from 'gsap';
 import { useFetch }                           from '../../hooks/useFetch';
 import { useDebounce }                        from '../../hooks/useDebounce';
 import { clientsApi }                         from '../../api/endpoints/clients';
+import { accountsApi }                        from '../../api/endpoints/accounts';
 import Navbar                                 from '../../components/layout/Navbar';
 import Spinner                                from '../../components/ui/Spinner';
 import Alert                                  from '../../components/ui/Alert';
 import CardsFilters                           from '../../features/cards/CardsFilters';
 import CardsTable                             from '../../features/cards/CardsTable';
-import UnblockCardModal                       from '../../features/cards/UnblockCardModal';
+import CardRequestsTable                      from '../../features/cards/CardRequestsTable';
+import { cardsApi }                           from '../../api/endpoints/cards';
 import styles                                 from './CardsPortal.module.css';
 
 export default function CardsPortal() {
@@ -35,18 +37,42 @@ export default function CardsPortal() {
     [debFirst, debLast, debJmbg, debAccount]
   );
 
-  const [modalTarget,    setModalTarget]    = useState(null);
-  const [unblockSuccess, setUnblockSuccess] = useState(null);
+  const [tab, setTab] = useState('clients'); // 'clients' | 'requests'
 
-  function handleUnblockClick({ card, clientName }) {
-    setUnblockSuccess(null);
-    setModalTarget({ card, clientName });
+  // Fetch requests
+  const { data: reqsData, loading: loadingReqs, refetch: refetchReqs } = useFetch(() => {
+    if (tab === 'requests') return cardsApi.getRequests();
+    return Promise.resolve([]);
+  }, [tab]);
+  const requests = reqsData?.data ?? reqsData ?? [];
+
+  const [actionId, setActionId] = useState(null);
+  const [reqError, setReqError] = useState(null);
+
+  async function handleApprove(id) {
+    setActionId(id);
+    setReqError(null);
+    try {
+      await cardsApi.approveRequest(id);
+      refetchReqs();
+    } catch (err) {
+      setReqError(err?.message ?? err?.error ?? 'Greška pri odobravanju.');
+    } finally {
+      setActionId(null);
+    }
   }
 
-  function handleModalSuccess() {
-    setModalTarget(null);
-    setUnblockSuccess('Kartica je uspešno deblokirana.');
-    refetch();
+  async function handleReject(id) {
+    setActionId(id);
+    setReqError(null);
+    try {
+      await cardsApi.rejectRequest(id);
+      refetchReqs();
+    } catch (err) {
+      setReqError(err?.message ?? err?.error ?? 'Greška pri odbijanju.');
+    } finally {
+      setActionId(null);
+    }
   }
 
   useLayoutEffect(() => {
@@ -56,54 +82,103 @@ export default function CardsPortal() {
     return () => ctx.revert();
   }, []);
 
-  const clients = data?.data ?? [];
-
-  return (
-    <div ref={pageRef} className={styles.stranica}>
-      <Navbar />
-      <main className={styles.sadrzaj}>
-
-        <div className="page-anim">
-          <div className={styles.breadcrumb}>
-            <span>Admin</span><span className={styles.sep}>›</span>
-            <span className={styles.current}>Portal za račune i kartice</span>
-          </div>
-          <h1 className={styles.title}>Portal za račune i kartice</h1>
-          <p className={styles.desc}>
-            Pregled klijenata i upravljanje karticama. Jedino mesto za deblokadu kartice.
-          </p>
-        </div>
-
-        {unblockSuccess && (
+    const { data: accountsData, loading: loadingAccounts } = useFetch(
+      () => {
+        // Fetch all accounts without filters to join client-side
+        return accountsApi.getAll({ page: 1, page_size: 1000 });
+      },
+      []
+    );
+  
+    const allAccounts = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
+    
+    // Join clients with their accounts
+    const clientsWithAccounts = (data?.data ?? []).map(client => {
+      const clientAccounts = allAccounts.filter(acc => acc.client_id === client.id);
+      return {
+        ...client,
+        accounts: clientAccounts
+      };
+    });
+  
+    return (
+      <div ref={pageRef} className={styles.stranica}>
+        <Navbar />
+        <main className={styles.sadrzaj}>
+  
           <div className="page-anim">
-            <Alert tip="uspeh" poruka={unblockSuccess} />
+            <div className={styles.breadcrumb}>
+              <span>Admin</span><span className={styles.sep}>›</span>
+              <span className={styles.current}>Portal za kartice</span>
+            </div>
+            <h1 className={styles.title}>Portal za kartice</h1>
+            <p className={styles.desc}>
+              Upravljanje klijentima, karticama i zahtevima za izradu novih kartica.
+            </p>
           </div>
-        )}
-
-        <div className="page-anim">
-          <CardsFilters filters={filters} onChange={setFilters} />
-        </div>
-
-        {loading && <Spinner />}
-        {!loading && error && (
-          <Alert tip="greska" poruka={error?.response?.data?.error ?? 'Greška pri učitavanju klijenata.'} />
-        )}
-        {!loading && !error && (
-          <div className="page-anim">
-            <CardsTable clients={clients} onUnblockClick={handleUnblockClick} />
+  
+          <div className={`page-anim`} style={{ display: 'flex', gap: '32px', borderBottom: '1px solid var(--border)', paddingBottom: '0px', marginBottom: '24px', marginTop: '16px' }}>
+              <button
+                  style={{ background: 'none', border: 'none', padding: '0 0 12px 0', fontSize: '15px', fontWeight: tab === 'clients' ? '700' : '500', color: tab === 'clients' ? 'var(--blue)' : 'var(--tx-2)', borderBottom: tab === 'clients' ? '2px solid var(--blue)' : '2px solid transparent', cursor: 'pointer', outline: 'none' }}
+                  onClick={() => setTab('clients')}
+              >
+                  Pregled klijenata
+              </button>
+              <button
+                  style={{ background: 'none', border: 'none', padding: '0 0 12px 0', fontSize: '15px', fontWeight: tab === 'requests' ? '700' : '500', color: tab === 'requests' ? 'var(--blue)' : 'var(--tx-2)', borderBottom: tab === 'requests' ? '2px solid var(--blue)' : '2px solid transparent', cursor: 'pointer', outline: 'none' }}
+                  onClick={() => setTab('requests')}
+              >
+                  Zahtevi za kartice
+              </button>
           </div>
+  
+          {tab === 'clients' && (
+            <>
+              <div className="page-anim">
+                <CardsFilters filters={filters} onChange={setFilters} />
+              </div>
+  
+              {(loading || loadingAccounts) && <Spinner />}
+              {(!loading && !loadingAccounts) && error && (
+                <Alert tip="greska" poruka={error?.response?.data?.error ?? 'Greška pri učitavanju klijenata.'} />
+              )}
+              {(!loading && !loadingAccounts) && !error && (
+                <div className="page-anim">
+                  <CardsTable 
+                    clients={clientsWithAccounts} 
+                    onActionSuccess={() => {
+                      refetch();
+                      if (typeof reFetchAccounts === 'function') reFetchAccounts();
+                    }} 
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+        {tab === 'requests' && (
+          <>
+            {reqError && (
+              <div className="page-anim" style={{ marginBottom: '16px' }}>
+                <Alert tip="greska" poruka={reqError} />
+              </div>
+            )}
+            {loadingReqs && <Spinner />}
+            {!loadingReqs && (
+              <div className="page-anim">
+                <CardRequestsTable
+                  requests={requests}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  actionId={actionId}
+                />
+              </div>
+            )}
+          </>
         )}
 
       </main>
 
-      {modalTarget && (
-        <UnblockCardModal
-          card={modalTarget.card}
-          clientName={modalTarget.clientName}
-          onClose={() => setModalTarget(null)}
-          onSuccess={handleModalSuccess}
-        />
-      )}
     </div>
   );
 }

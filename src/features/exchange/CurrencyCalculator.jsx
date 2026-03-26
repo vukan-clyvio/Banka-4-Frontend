@@ -173,6 +173,19 @@ export default function CurrencyCalculator() {
                         {rateLabel && (
                             <div className={styles.rateInfo}>{rateLabel}</div>
                         )}
+                        <button
+                            className={styles.btnPrimary}
+                            style={{ width: '100%', marginTop: '24px' }}
+                            onClick={() => navigate('/transfers/new', {
+                                state: {
+                                    prefilledAmount: amount,
+                                    prefilledFromCurrency: fromCurrency,
+                                    prefilledToCurrency: toCurrency
+                                }
+                            })}
+                        >
+                            Izvrši zamenu
+                        </button>
                     </div>
                 </div>
             </main>

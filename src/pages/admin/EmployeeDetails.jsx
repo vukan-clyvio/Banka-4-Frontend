@@ -16,6 +16,10 @@ const ALL_PERMISSIONS = [
   { value: 'employee.create', label: 'Kreiranje zaposlenih' },
   { value: 'employee.update', label: 'Izmena zaposlenih' },
   { value: 'employee.delete', label: 'Brisanje zaposlenih' },
+  { value: 'account.create', label: 'Kreiranje racuna' },
+  { value: 'admin.cards', label: 'Admin portal - Kartice' },
+  { value: 'admin.clients', label: 'Admin portal - Klijenti' },
+  { value: 'admin.loans', label: 'Admin portal - Krediti' },
 ];
 
 export default function EmployeeDetails() {
@@ -89,8 +93,8 @@ export default function EmployeeDetails() {
         ? prev.permissions.filter(p => p !== perm)
         : [...prev.permissions, perm];
 
-      // Ako ima create/update/delete, view mora biti uključen
-      const needsView = perms.some(p => p !== 'employee.view');
+      // Ako ima create/update/delete za employee, view mora biti uključen
+      const needsView = perms.some(p => p.startsWith('employee.') && p !== 'employee.view');
       if (needsView && !perms.includes('employee.view')) {
         perms = [...perms, 'employee.view'];
       }
@@ -149,12 +153,12 @@ export default function EmployeeDetails() {
   }
 
   async function handleDelete() {
-    if (!window.confirm('Da li ste sigurni da želite da obrišete ovog zaposlenog?')) return;
+    if (!window.confirm('Da li ste sigurni da želite da deaktivirate ovog zaposlenog?')) return;
     try {
       await employeesApi.deactivate(id);
       navigate('/employees');
     } catch (err) {
-      setApiError(err.error ?? 'Greška pri brisanju.');
+      setApiError(err.error ?? 'Greška pri deaktivaciji.');
     }
   }
 
@@ -189,7 +193,7 @@ export default function EmployeeDetails() {
                 )}
                 {can('employee.delete') && (
                   <button className={styles.btnDanger} onClick={handleDelete}>
-                    Obriši
+                    Deaktiviraj
                   </button>
                 )}
               </div>

@@ -13,7 +13,7 @@ import gsap from "gsap";
 export default function TransfersHistory() {
     const pageRef = useRef(null);
     const navigate = useNavigate();
-    const clientId = useAuthStore(s => s.user?.id);
+    const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
     const { data: transfersRes, loading, error } =
         useFetch(() => transfersApi.getHistory(clientId), [clientId]);
@@ -75,6 +75,7 @@ export default function TransfersHistory() {
         <div ref={pageRef} className={styles.stranica}>
             <main className={styles.sadrzaj}>
                 <div className="page-anim">
+                    <button className={styles.back} style={{marginBottom: '16px'}} onClick={() => navigate('/dashboard')}>← Nazad</button>
                     <div className={styles.breadcrumb}>
                         <span>Transferi</span> › <span className={styles.breadcrumbActive}>Istorija transfera</span>
                     </div>

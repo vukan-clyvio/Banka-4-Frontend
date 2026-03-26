@@ -73,6 +73,11 @@ export default function ClientList() {
               <h1 className={styles.pageTitle}>Klijenti</h1>
               <p className={styles.pageDesc}>Pregled svih klijenata banke.</p>
             </div>
+            <div className={styles.headerActions}>
+              <button className={styles.btnPrimary} onClick={() => window.location.href = '/clients/new'}>
+                + Novi klijent
+              </button>
+            </div>
           </div>
         </div>
 

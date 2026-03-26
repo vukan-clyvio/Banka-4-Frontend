@@ -14,6 +14,19 @@ export default function CardVisual({ card, onOpenDetails }) {
   const maskedNumber = useMemo(() => formatCardNumberForUi(card.cardNumber), [card.cardNumber]);
   const brand = useMemo(() => getCardBrand(card.cardNumber), [card.cardNumber]);
   const statusMeta = useMemo(() => getStatusMeta(card.status), [card.status]);
+  
+  const formattedExpiry = useMemo(() => {
+    if (!card.expiresAt) return '';
+    try {
+      const d = new Date(card.expiresAt);
+      if (isNaN(d.getTime())) return card.expiresAt;
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const y = String(d.getFullYear()).slice(-2);
+      return `${m}/${y}`;
+    } catch {
+      return card.expiresAt;
+    }
+  }, [card.expiresAt]);
 
   return (
     <div className={styles.cardVisualWrap}>
@@ -38,7 +51,7 @@ export default function CardVisual({ card, onOpenDetails }) {
 
             <div className={styles.cardMetaRight}>
               <span className={styles.cardMetaLabel}>Važi do</span>
-              <strong className={styles.cardMetaValue}>{card.expiresAt}</strong>
+              <strong className={styles.cardMetaValue}>{formattedExpiry}</strong>
             </div>
           </div>
         </div>

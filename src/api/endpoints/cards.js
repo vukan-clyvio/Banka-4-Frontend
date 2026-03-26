@@ -1,4 +1,4 @@
-import { bankingApi as api } from '../client';
+import coreApi, { bankingApi as api } from '../client';
 
 export const cardsApi = {
   // List cards for a specific client account
@@ -18,4 +18,9 @@ export const cardsApi = {
   block:      (cardId) => api.put(`/cards/${cardId}/block`),
   unblock:    (cardId) => api.put(`/cards/${cardId}/unblock`),
   deactivate: (cardId) => api.put(`/cards/${cardId}/deactivate`),
+
+  // Admin Request Endpoints
+  getRequests: () => coreApi.get('/cards/requests'),
+  approveRequest: (id) => coreApi.post(`/cards/requests/${id}/approve`),
+  rejectRequest: (id) => coreApi.post(`/cards/requests/${id}/reject`),
 };

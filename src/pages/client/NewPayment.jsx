@@ -80,7 +80,7 @@ export default function NewPayment() {
   const location = useLocation();
   const prefilled = location.state?.recipient;
   const prefilledFrom = location.state?.fromAccount;
-  const clientId = useAuthStore(s => s.user?.id);
+  const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
   const { data: accountsData, loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
   const accounts   = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];

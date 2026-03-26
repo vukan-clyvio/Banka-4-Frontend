@@ -141,7 +141,7 @@ export default function ClientDashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showPaymentsMenu]);
 
-  const clientId = useAuthStore(s => s.user?.id);
+  const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
   const { data: accountsData,  loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
 
@@ -182,7 +182,7 @@ export default function ClientDashboard() {
   function handleLogout() { logout(); navigate('/login'); }
 
   const navItems = [
-    { label: 'Računi',     path: '/accounts' },
+    { label: 'Računi',     path: '/client/accounts' },
     { label: 'Transferi',  path: '/client/transfers' },
     { label: 'Menjačnica', path: '/client/exchange' },
     { label: 'Kartice',    path: '/client/cards' },
@@ -259,7 +259,7 @@ export default function ClientDashboard() {
 
       <div className={styles.content}>
         <div className={styles.welcome}>
-          <h1 className={styles.welcomeTitle}>Dobro jutro, {user?.first_name ?? 'Klijente'} 👋</h1>
+          <h1 className={styles.welcomeTitle}>Zdravo, {user?.first_name ?? 'Klijente'} 👋</h1>
           <p className={styles.welcomeSub}>Evo pregleda vašeg finansijskog stanja.</p>
         </div>
         <div className={styles.grid}>

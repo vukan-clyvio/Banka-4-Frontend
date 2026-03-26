@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import styles from './AccountDetailsModal.module.css';
 
 export default function AccountDetailsModal({ open, onClose, account, onAccountUpdated }) {
-  const clientId = useAuthStore(s => s.user?.id);
+  const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
   const [view, setView] = useState('details'); // details | rename | limits
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

@@ -13,6 +13,7 @@ import EmployeeList   from './pages/admin/EmployeeList';
 import NewEmployee    from './pages/admin/NewEmployee';
 import EmployeeDetails from './pages/admin/EmployeeDetails';
 import ClientList     from './pages/admin/ClientList';
+import NewClient      from './pages/admin/NewClient';
 import Loans          from './pages/admin/Loans';
 import PaymentOverview from './pages/admin/PaymentOverview';
 import Accounts       from './pages/admin/Accounts';
@@ -115,6 +116,7 @@ export default function App() {
         {/* ADMIN/EMPLOYEE RUTE */}
         <Route path="/admin"     element={<ProtectedRoute><EmployeeRoute><Dashboard    /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/clients"   element={<ProtectedRoute><EmployeeRoute><ClientList   /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/clients/new" element={<ProtectedRoute><EmployeeRoute><NewClient   /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/loans"     element={<ProtectedRoute><EmployeeRoute><Loans        /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/payments"  element={<ProtectedRoute><EmployeeRoute><PaymentOverview /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/cards"     element={<ProtectedRoute><EmployeeRoute><CardsPage portalType="admin" /></EmployeeRoute></ProtectedRoute>} />

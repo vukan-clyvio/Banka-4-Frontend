@@ -20,9 +20,9 @@ export function formatCardNumberForUi(number = '') {
   const digits = String(number).replace(/\D/g, '');
   if (!digits) return '•••• •••• •••• ••••';
   if (digits.length >= 16) {
-    return `${digits.slice(0, 4)} **** **** ${digits.slice(-4)}`;
+    return `${digits.slice(0, 4)} •••• •••• ${digits.slice(-4)}`;
   }
-  return digits;
+  return digits.replace(/(.{4})/g, '$1 ').trim();
 }
 
 export function getCardBrand(cardNumber = '') {

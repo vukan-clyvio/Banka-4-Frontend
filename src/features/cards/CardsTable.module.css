@@ -85,6 +85,45 @@
 
 .btnUnblock:hover { background: var(--blue-light); }
 
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.btnBlock, .btnDeactivate {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btnBlock {
+  background: var(--red);
+}
+
+.btnBlock:hover {
+  background: var(--red-light);
+  transform: translateY(-1px);
+}
+
+.btnDeactivate {
+  background: var(--tx-3);
+}
+
+.btnDeactivate:hover {
+  background: var(--tx-2);
+  transform: translateY(-1px);
+}
+
 .emptyState {
   padding: 56px 24px;
   text-align: center;

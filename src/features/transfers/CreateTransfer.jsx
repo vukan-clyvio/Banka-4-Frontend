@@ -30,7 +30,22 @@ export default function CreateTransfer() {
 
     const [fromAccNum, setFromAccNum] = useState(restored?.fromAccount?.account_number ?? '');
     const [toAccNum, setToAccNum] = useState(restored?.toAccount?.account_number ?? '');
-    const [amount, setAmount] = useState(restored?.amount ? String(restored.amount) : '');
+    const [amount, setAmount] = useState(restored?.amount ? String(restored.amount) : (restored?.prefilledAmount ? String(restored.prefilledAmount) : ''));
+
+    // Handle prefilling accounts by currency from CurrencyCalculator
+    useEffect(() => {
+        if (accounts.length > 0 && restored?.prefilledFromCurrency && !fromAccNum) {
+            const acc = accounts.find(a => (a.currency ?? a.valuta) === restored.prefilledFromCurrency);
+            if (acc) setFromAccNum(acc.account_number ?? acc.number);
+        }
+    }, [accounts, restored?.prefilledFromCurrency, fromAccNum]);
+
+    useEffect(() => {
+        if (accounts.length > 0 && restored?.prefilledToCurrency && !toAccNum) {
+            const acc = accounts.find(a => (a.currency ?? a.valuta) === restored.prefilledToCurrency);
+            if (acc) setToAccNum(acc.account_number ?? acc.number);
+        }
+    }, [accounts, restored?.prefilledToCurrency, toAccNum]);
 
     const fromAccount = accounts.find(a => (a.account_number ?? a.number) === fromAccNum) ?? null;
     const toAccount = accounts.find(a => (a.account_number ?? a.number) === toAccNum) ?? null;
