@@ -144,7 +144,6 @@ export default function ClientLoans() {
       ) : loans.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Nemate aktivnih kredita.</p>
-          <button className={styles.newBtn} onClick={openForm}>Podnesi zahtev</button>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '1.5rem', alignItems: 'start' }}>

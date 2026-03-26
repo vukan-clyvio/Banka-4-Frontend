@@ -18,7 +18,7 @@ export default function Navbar() {
 
   const menuRef  = useRef(null);
   const adminRef = useRef(null);
- 
+
 
   useEffect(() => {
     function handleClick(e) {
@@ -93,14 +93,20 @@ export default function Navbar() {
           Plaćanja
           </NavLink>
 
-          {can('admin.cards') && (
-            <NavLink
-              to="/cards"
+          <NavLink
+              to="/accounts/new"
               className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
-            >
-              Kartice
-            </NavLink>
-          )}
+          >
+            Novi račun
+          </NavLink>
+
+
+          <NavLink
+            to="/cards"
+            className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+          >
+            Kartice
+          </NavLink>
 
 
 
@@ -168,7 +174,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-            
+
           )}
 
 
