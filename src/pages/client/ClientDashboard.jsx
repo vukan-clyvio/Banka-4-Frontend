@@ -120,37 +120,43 @@ export default function ClientDashboard() {
   const user     = useAuthStore(s => s.user);
   const logout   = useAuthStore(s => s.logout);
 
-  const [selectedAccount, setSelectedAccount] = useState(0);
-  const [calcAmount, setCalcAmount] = useState('');
-  const [calcFrom,   setCalcFrom]   = useState('EUR');
-  const [calcResult, setCalcResult] = useState('');
-  const [showProfile,      setShowProfile]      = useState(false);
-  const [showSwitcher,     setShowSwitcher]     = useState(false);
-  const [paymentRecipient, setPaymentRecipient] = useState(null);
-  const [showPayment,      setShowPayment]      = useState(false);
-  const [showPaymentsMenu, setShowPaymentsMenu] = useState(false);
-  const paymentsMenuRef = useRef(null);
+  const [selectedAccount,   setSelectedAccount]   = useState(0);
+  const [calcAmount,        setCalcAmount]        = useState('');
+  const [calcFrom,          setCalcFrom]          = useState('EUR');
+  const [calcResult,        setCalcResult]        = useState('');
+  const [showProfile,       setShowProfile]       = useState(false);
+  const [showSwitcher,      setShowSwitcher]      = useState(false);
+  const [paymentRecipient,  setPaymentRecipient]  = useState(null);
+  const [showPayment,       setShowPayment]       = useState(false);
+  const [showPaymentsMenu,  setShowPaymentsMenu]  = useState(false);
+  const [showTransfersMenu, setShowTransfersMenu] = useState(false);
+
+  const paymentsMenuRef  = useRef(null);
+  const transfersMenuRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (paymentsMenuRef.current && !paymentsMenuRef.current.contains(e.target)) {
+      if (paymentsMenuRef.current && !paymentsMenuRef.current.contains(e.target))
         setShowPaymentsMenu(false);
-      }
+      if (transfersMenuRef.current && !transfersMenuRef.current.contains(e.target))
+        setShowTransfersMenu(false);
     }
-    if (showPaymentsMenu) document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showPaymentsMenu]);
+  }, []);
 
   const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
-  const { data: accountsData,  loading: loadingAccounts } = useFetch(() => clientApi.getAccounts(clientId), [clientId]);
+  const { data: accountsData, loading: loadingAccounts } = useFetch(
+    () => clientApi.getAccounts(clientId),
+    [clientId]
+  );
+  const accounts = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
 
-  const accounts     = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
-
-  const activeAccount = accounts[selectedAccount];
+  const activeAccount       = accounts[selectedAccount];
   const activeAccountNumber = activeAccount?.account_number ?? activeAccount?.number ?? '';
 
-  // Poslednje transakcije za selektovani račun
+  // ── FIX: getByAccount — potvrđeno radi u ClientAccounts.jsx ──
   const { data: txData, loading: loadingTx } = useFetch(
     () => clientId && activeAccountNumber
       ? paymentsApi.getByAccount(clientId, activeAccountNumber, { page: 1, page_size: 5 })
@@ -159,12 +165,11 @@ export default function ClientDashboard() {
   );
   const transactions = Array.isArray(txData) ? txData : txData?.data ?? [];
 
-  // Sačuvani primaoci
   const { data: payeesData } = useFetch(() => clientApi.getPayees(), []);
   const recipients = Array.isArray(payeesData) ? payeesData : payeesData?.data ?? [];
 
   const { data: ratesData } = useFetch(() => exchangeApi.getRates(), []);
-  const rates        = Array.isArray(ratesData?.rates) ? ratesData.rates : [];
+  const rates = Array.isArray(ratesData?.rates) ? ratesData.rates : [];
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -181,19 +186,16 @@ export default function ClientDashboard() {
 
   function handleLogout() { logout(); navigate('/login'); }
 
-  const navItems = [
-    { label: 'Računi',     path: '/client/accounts' },
-    { label: 'Transferi',  path: '/client/transfers' },
-    { label: 'Menjačnica', path: '/client/exchange' },
-    { label: 'Kartice',    path: '/client/cards' },
-    { label: 'Krediti',    path: '/client/loans' },
+  const transfersSubItems = [
+    { label: 'Novi transfer',      path: '/transfers/new' },
+    { label: 'Istorija transfera', path: '/transfers/history' },
   ];
 
   const paymentsSubItems = [
-    { label: 'Novo plaćanje',       path: '/client/payments/new' },
-    { label: 'Prenos',              path: '/client/transfers' },
-    { label: 'Primaoci plaćanja',   path: '/client/recipients' },
-    { label: 'Pregled plaćanja',    path: '/client/payments' },
+    { label: 'Novo plaćanje',     path: '/client/payments/new' },
+    { label: 'Prenos',            path: '/transfers/new' },
+    { label: 'Primaoci plaćanja', path: '/client/recipients' },
+    { label: 'Pregled plaćanja',  path: '/client/payments' },
   ];
 
   return (
@@ -208,12 +210,39 @@ export default function ClientDashboard() {
           </div>
           <span className={styles.headerBrandText}>RAFBank</span>
         </button>
+
         <nav className={styles.headerNav}>
-          {navItems.map(item => (
-            <button key={item.label} className={styles.headerNavBtn} onClick={() => navigate(item.path)}>
-              {item.label}
+          <button className={styles.headerNavBtn} onClick={() => navigate('/client/accounts')}>Računi</button>
+
+          {/* Transferi dropdown */}
+          <div className={styles.payDropdownWrap} ref={transfersMenuRef}>
+            <button
+              className={`${styles.headerNavBtn} ${showTransfersMenu ? styles.headerNavBtnActive : ''}`}
+              onClick={() => setShowTransfersMenu(prev => !prev)}
+            >
+              Transferi
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4 }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
             </button>
-          ))}
+            {showTransfersMenu && (
+              <div className={styles.payDropdownMenu}>
+                {transfersSubItems.map(item => (
+                  <button
+                    key={item.label}
+                    className={styles.payDropdownItem}
+                    onClick={() => { navigate(item.path); setShowTransfersMenu(false); }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button className={styles.headerNavBtn} onClick={() => navigate('/client/exchange')}>Menjačnica</button>
+          <button className={styles.headerNavBtn} onClick={() => navigate('/client/cards')}>Kartice</button>
+          <button className={styles.headerNavBtn} onClick={() => navigate('/client/loans')}>Krediti</button>
 
           {/* Plaćanja dropdown */}
           <div className={styles.payDropdownWrap} ref={paymentsMenuRef}>
@@ -241,6 +270,7 @@ export default function ClientDashboard() {
             )}
           </div>
         </nav>
+
         <div className={styles.headerRight}>
           <button className={styles.headerProfile} onClick={() => setShowProfile(true)}>
             <div className={styles.headerAvatar}>{user?.first_name?.[0]}{user?.last_name?.[0]}</div>
@@ -291,17 +321,22 @@ export default function ClientDashboard() {
             )}
           </section>
 
-          {/* TRANSAKCIJE + ACCOUNT SWITCHER */}
+          {/* TRANSAKCIJE */}
           <section className={`dash-card ${styles.card} ${styles.txCard}`}>
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>Poslednje transakcije</h2>
-              <button className={styles.switcherBtn} onClick={() => setShowSwitcher(true)} title="Promeni račun">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                  <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                </svg>
-                {activeAccount?.name ?? 'Račun'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button className={styles.cardLink} onClick={() => navigate('/transfers/history')}>
+                  Vidi sve →
+                </button>
+                <button className={styles.switcherBtn} onClick={() => setShowSwitcher(true)} title="Promeni račun">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                    <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                  </svg>
+                  {activeAccount?.name ?? 'Račun'}
+                </button>
+              </div>
             </div>
             {loadingTx ? <Spinner /> : transactions.length === 0 ? (
               <p style={{ color: 'var(--tx-3)', fontSize: 13, textAlign: 'center', padding: '2rem 0' }}>Nema transakcija za ovaj račun.</p>
@@ -309,15 +344,18 @@ export default function ClientDashboard() {
               <table className={styles.txTable}>
                 <thead><tr><th>Opis</th><th>Datum</th><th style={{ textAlign: 'right' }}>Iznos</th></tr></thead>
                 <tbody>
-                  {transactions.slice(0, 5).map(tx => (
-                    <tr key={tx.id ?? tx.payment_id}>
-                      <td>{tx.purpose ?? tx.description ?? '—'}</td>
-                      <td>{formatDate(tx.date ?? tx.created_at)}</td>
-                      <td className={tx.status === 'COMPLETED' || tx.type === 'credit' ? styles.credit : styles.debit}>
-                        {formatAmount(tx.amount, tx.currency)}
-                      </td>
-                    </tr>
-                  ))}
+                  {transactions.slice(0, 5).map(tx => {
+                    const isCredit = tx.type === 'credit' || tx.type === 'UPLATA' || (tx.amount != null && tx.amount > 0);
+                    return (
+                      <tr key={tx.id ?? tx.payment_id}>
+                        <td>{tx.recipient_name ?? tx.sender_name ?? tx.purpose ?? tx.description ?? '—'}</td>
+                        <td>{formatDate(tx.date ?? tx.created_at)}</td>
+                        <td className={isCredit ? styles.credit : styles.debit}>
+                          {formatAmount(tx.amount, tx.currency)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}

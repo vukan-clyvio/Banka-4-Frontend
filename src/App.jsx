@@ -8,39 +8,39 @@ import ResetPassword     from './pages/auth/ResetPassword';
 import AccountActivation from './pages/auth/AccountActivation';
 
 // Admin pages
-import Dashboard      from './pages/admin/Dashboard';
-import EmployeeList   from './pages/admin/EmployeeList';
-import NewEmployee    from './pages/admin/NewEmployee';
+import Dashboard       from './pages/admin/Dashboard';
+import EmployeeList    from './pages/admin/EmployeeList';
+import NewEmployee     from './pages/admin/NewEmployee';
 import EmployeeDetails from './pages/admin/EmployeeDetails';
-import ClientList     from './pages/admin/ClientList';
-import NewClient      from './pages/admin/NewClient';
-import Loans          from './pages/admin/Loans';
+import ClientList      from './pages/admin/ClientList';
+import NewClient       from './pages/admin/NewClient';
+import Loans           from './pages/admin/Loans';
 import PaymentOverview from './pages/admin/PaymentOverview';
-import Accounts       from './pages/admin/Accounts';
-import NewAccount     from './pages/admin/NewAccount';
-import CardsPage      from './pages/admin/CardsPage';
-import CardsPortal    from './pages/admin/CardsPortal';
-import ClientsPortal  from './pages/admin/ClientsPortal';
-import LoansPortal    from './pages/admin/LoansPortal';
+import Accounts        from './pages/admin/Accounts';
+import NewAccount      from './pages/admin/NewAccount';
+import CardsPage       from './pages/admin/CardsPage';
+import CardsPortal     from './pages/admin/CardsPortal';
+import ClientsPortal   from './pages/admin/ClientsPortal';
+import LoansPortal     from './pages/admin/LoansPortal';
 
 // Client pages
-import ClientDashboard  from './pages/client/ClientDashboard';
-import ClientAccounts   from './pages/client/ClientAccounts';
-import ClientExchange   from './pages/client/ClientExchange';
-import ClientLoans      from './pages/client/ClientLoans';
-import ClientRecipients from './pages/client/ClientRecipients';
-import ClientTransfers  from './pages/client/ClientTransfers';
+import ClientDashboard       from './pages/client/ClientDashboard';
+import ClientAccounts        from './pages/client/ClientAccounts';
+import ClientExchange        from './pages/client/ClientExchange';
+import ClientLoans           from './pages/client/ClientLoans';
+import ClientRecipients      from './pages/client/ClientRecipients';
+import ClientTransfers       from './pages/client/ClientTransfers';
+import ClientTransferHistory from './pages/client/ClientTransferHistory'; // ── NOVO ──
 import ClientPaymentOverview from './pages/client/ClientPaymentOverview';
-import NewPayment       from './pages/client/NewPayment';
+import NewPayment            from './pages/client/NewPayment';
 
 // Shared
 import NotFound from './pages/NotFound';
 
-import CreateTransfer   from './features/transfers/CreateTransfer';
-import ConfirmTransfer  from './features/transfers/ConfirmTransfer';
-import TransfersHistory from './features/transfers/TransfersHistory';
+import CreateTransfer  from './features/transfers/CreateTransfer';
+import ConfirmTransfer from './features/transfers/ConfirmTransfer';
 
-import RatesList        from './features/exchange/RatesList.jsx';
+import RatesList          from './features/exchange/RatesList.jsx';
 import CurrencyCalculator from './features/exchange/CurrencyCalculator.jsx';
 
 
@@ -70,14 +70,12 @@ function EmployeeRoute({ children }) {
 
 export default function App() {
   const token = useAuthStore(s => s.token);
-  const user = useAuthStore(s => s.user);
-  
-  // Inicijalizuj auth iz localStorage PRE prvog rendera
+  const user  = useAuthStore(s => s.user);
+
   useLayoutEffect(() => {
     useAuthStore.getState().initFromStorage();
   }, []);
-  
-  // Odluči gde da redirektuje na osnovu identity_type
+
   const getDefaultRoute = () => {
     if (!token) return '/login';
     if (!user)  return '/login';
@@ -85,19 +83,16 @@ export default function App() {
     if (user.identity_type === 'employee') return '/admin';
     return '/login';
   };
-  
+
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* ROOT - Pametni redirect na osnovu role */}
         <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
 
-        {/* UNIFIED LOGIN */}
-        <Route path="/login"            element={<UnifiedLogin />} />
-
-        <Route path="/reset-password"   element={<ResetPassword />} />
-        <Route path="/activate"         element={<AccountActivation />} />
+        <Route path="/login"          element={<UnifiedLogin />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/activate"       element={<AccountActivation />} />
 
         {/* KLIJENTSKE RUTE */}
         <Route path="/dashboard"           element={<ProtectedRoute><ClientRoute><ClientDashboard /></ClientRoute></ProtectedRoute>} />
@@ -111,17 +106,18 @@ export default function App() {
         <Route path="/client/recipients"   element={<ProtectedRoute><ClientRoute><ClientRecipients /></ClientRoute></ProtectedRoute>} />
         <Route path="/transfers/new"       element={<ProtectedRoute><ClientRoute><CreateTransfer  /></ClientRoute></ProtectedRoute>} />
         <Route path="/transfers/confirm"   element={<ProtectedRoute><ClientRoute><ConfirmTransfer /></ClientRoute></ProtectedRoute>} />
-        <Route path="/transfers/history"   element={<ProtectedRoute><ClientRoute><TransfersHistory /></ClientRoute></ProtectedRoute>} />
+        {/* ── NOVO ── */}
+        <Route path="/transfers/history"   element={<ProtectedRoute><ClientRoute><ClientTransferHistory /></ClientRoute></ProtectedRoute>} />
 
         {/* ADMIN/EMPLOYEE RUTE */}
-        <Route path="/admin"     element={<ProtectedRoute><EmployeeRoute><Dashboard    /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/clients"   element={<ProtectedRoute><EmployeeRoute><ClientList   /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/clients/new" element={<ProtectedRoute><EmployeeRoute><NewClient   /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/loans"     element={<ProtectedRoute><EmployeeRoute><Loans        /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/payments"  element={<ProtectedRoute><EmployeeRoute><PaymentOverview /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/cards"     element={<ProtectedRoute><EmployeeRoute><CardsPage portalType="admin" /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/accounts"     element={<ProtectedRoute><EmployeeRoute><Accounts     /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/accounts/new" element={<ProtectedRoute><EmployeeRoute><NewAccount   /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/admin"       element={<ProtectedRoute><EmployeeRoute><Dashboard      /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/clients"     element={<ProtectedRoute><EmployeeRoute><ClientList     /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/clients/new" element={<ProtectedRoute><EmployeeRoute><NewClient      /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/loans"       element={<ProtectedRoute><EmployeeRoute><Loans          /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/payments"    element={<ProtectedRoute><EmployeeRoute><PaymentOverview /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/cards"       element={<ProtectedRoute><EmployeeRoute><CardsPage portalType="admin" /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/accounts"     element={<ProtectedRoute><EmployeeRoute><Accounts      /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/accounts/new" element={<ProtectedRoute><EmployeeRoute><NewAccount    /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/admin/cards"   element={<ProtectedRoute><EmployeeRoute><CardsPortal   /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/admin/clients" element={<ProtectedRoute><EmployeeRoute><ClientsPortal /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/admin/loans"   element={<ProtectedRoute><EmployeeRoute><LoansPortal   /></EmployeeRoute></ProtectedRoute>} />
@@ -139,8 +135,6 @@ export default function App() {
         <Route path="/exchange/calculator" element={<ProtectedRoute><ClientRoute><CurrencyCalculator /></ClientRoute></ProtectedRoute>} />
 
         <Route path="*" element={<NotFound />} />
-
-
 
       </Routes>
     </BrowserRouter>

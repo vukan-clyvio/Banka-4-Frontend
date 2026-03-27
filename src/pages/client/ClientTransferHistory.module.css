@@ -1,0 +1,125 @@
+.page { min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; }
+
+/* HEADER */
+.header {
+  background: var(--navy); height: 56px;
+  display: flex; align-items: center; padding: 0 28px; gap: 24px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+}
+.headerIcon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.headerIcon svg { width: 18px; height: 18px; }
+.headerBrandText { font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+
+.headerNav { display: flex; align-items: center; gap: 2px; margin-left: 8px; }
+.headerNavBtn {
+  background: none; border: none; font-family: var(--font); font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.65); padding: 6px 12px; border-radius: 6px;
+  cursor: pointer; transition: all var(--transition); display: flex; align-items: center;
+}
+.headerNavBtn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.headerNavBtnActive { background: rgba(255,255,255,0.12) !important; color: #fff !important; }
+
+/* Dropdown — isti stilovi kao u ClientDashboard.module.css */
+.payDropdownWrap { position: relative; }
+.payDropdownMenu {
+  position: absolute; top: calc(100% + 8px); left: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  min-width: 190px; z-index: 200; overflow: hidden;
+}
+.payDropdownItem {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--tx-1);
+  padding: 10px 16px; cursor: pointer; transition: background var(--transition);
+}
+.payDropdownItem:hover { background: var(--input-bg); }
+.payDropdownItemActive { color: var(--blue); font-weight: 600; background: var(--blue-dim) !important; }
+
+.headerRight { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.headerProfile {
+  display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer;
+  font-family: var(--font); font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 6px; transition: background var(--transition);
+}
+.headerProfile:hover { background: rgba(255,255,255,0.08); }
+.headerAvatar {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.headerLogout {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  font-family: var(--font); font-size: 12px; font-weight: 500;
+  color: rgba(255,255,255,0.6); padding: 5px 12px; border-radius: 6px;
+  cursor: pointer; transition: all var(--transition);
+}
+.headerLogout:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* CONTENT */
+.content { flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 36px 24px 48px; }
+
+.pageHead { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; }
+.backBtn {
+  background: none; border: none; font-family: var(--font); font-size: 13px; font-weight: 500;
+  color: var(--tx-3); cursor: pointer; padding: 6px 0; transition: color var(--transition);
+  white-space: nowrap; margin-top: 2px;
+}
+.backBtn:hover { color: var(--blue); }
+.pageTitle { font-size: 22px; font-weight: 700; color: var(--tx-1); letter-spacing: -0.3px; }
+.pageSub   { font-size: 13px; color: var(--tx-3); margin-top: 4px; }
+
+/* TABLE CARD */
+.tableCard {
+  background: var(--surface); border-radius: var(--radius-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.tableWrap { overflow-x: auto; }
+.spinnerWrap { padding: 48px; display: flex; justify-content: center; }
+.empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 60px 24px; color: var(--tx-3); font-size: 14px;
+}
+
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table thead tr { background: var(--input-bg); border-bottom: 1px solid var(--border); }
+.table th {
+  padding: 12px 16px; text-align: left;
+  font-size: 11px; font-weight: 600; color: var(--tx-3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.table td { padding: 13px 16px; border-bottom: 1px solid var(--border); color: var(--tx-1); vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background: var(--input-bg); transition: background var(--transition); }
+
+.tdDate    { color: var(--tx-3); white-space: nowrap; font-size: 12px; }
+.tdDesc    { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.tdAccount { font-family: var(--mono); font-size: 12px; color: var(--tx-2); }
+.credit    { color: var(--green); font-weight: 600; text-align: right; white-space: nowrap; }
+.debit     { color: var(--red);   font-weight: 600; text-align: right; white-space: nowrap; }
+
+/* BADGES */
+.badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.badgeGreen { background: var(--green-bg); color: #065F46; }
+.badgeAmber { background: #FFFBEB; color: #92400E; }
+.badgeRed   { background: var(--red-bg);   color: #991B1B; }
+.badgeGray  { background: var(--input-bg); color: var(--tx-3); }
+
+/* PAGINATION */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 20px; border-top: 1px solid var(--border); }
+.pageBtn {
+  background: var(--surface); border: 1.5px solid var(--border);
+  font-family: var(--font); font-size: 13px; font-weight: 500;
+  color: var(--tx-2); padding: 8px 20px; border-radius: var(--radius);
+  cursor: pointer; transition: all var(--transition);
+}
+.pageBtn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pageNum { font-size: 13px; color: var(--tx-3); }
+
+@media (max-width: 768px) {
+  .content { padding: 24px 16px 40px; }
+  .table th:nth-child(3), .table td:nth-child(3),
+  .table th:nth-child(4), .table td:nth-child(4) { display: none; }
+}
