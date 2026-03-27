@@ -6,7 +6,4 @@ export const employeesApi = {
   create:   (data)     => api.post('/employees/register', data),
   update:   (id, data) => api.patch(`/employees/${id}`, data),
   remove:   (id)       => api.delete(`/employees/${id}`),
-  deactivate: (id)       => api.post(`/employees/${id}/deactivate`),
-
 };
-

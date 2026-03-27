@@ -151,7 +151,7 @@ export default function EmployeeDetails() {
   async function handleDelete() {
     if (!window.confirm('Da li ste sigurni da želite da obrišete ovog zaposlenog?')) return;
     try {
-      await employeesApi.deactivate(id);
+      await employeesApi.remove(id);
       navigate('/employees');
     } catch (err) {
       setApiError(err.error ?? 'Greška pri brisanju.');
