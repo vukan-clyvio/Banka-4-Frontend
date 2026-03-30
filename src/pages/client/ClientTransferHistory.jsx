@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef, useLayoutEffect, useState } from 'react';
+import { useNavigate }  from 'react-router-dom';
+import gsap             from 'gsap';
 import { useAuthStore } from '../../store/authStore';
 import { transfersApi } from '../../api/endpoints/transfers';
-import { useFetch } from '../../hooks/useFetch';
-import Spinner from '../../components/ui/Spinner';
-import styles from './ClientTransferHistory.module.css';
+import { useFetch }     from '../../hooks/useFetch';
+import Spinner          from '../../components/ui/Spinner';
+import ClientHeader     from '../../components/layout/ClientHeader';
+import styles           from './ClientTransferHistory.module.css';
 
 function formatAmount(amount, currency = '') {
   const formatted = new Intl.NumberFormat('sr-RS', {
@@ -30,14 +32,11 @@ function shortAccount(num) {
 }
 
 export default function ClientTransferHistory() {
+  const pageRef  = useRef(null);
   const navigate = useNavigate();
-  const user     = useAuthStore(s => s.user);
-  const logout   = useAuthStore(s => s.logout);
   const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
-  const [page, setPage]                           = useState(1);
-  const [showTransfersMenu, setShowTransfersMenu] = useState(false);
-  const [showPaymentsMenu,  setShowPaymentsMenu]  = useState(false);
+  const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
 
   const { data, loading, error } = useFetch(
@@ -45,123 +44,27 @@ export default function ClientTransferHistory() {
     [clientId, page]
   );
 
-  // API vraća { data: [...], total, page, total_pages }
   const rawTransfers = data?.data ?? (Array.isArray(data) ? data : []);
   const totalPages   = data?.total_pages ?? 0;
 
-  // Sortiraj od najnovijeg ka najstarijem po created_at
   const transfers = [...rawTransfers].sort((a, b) =>
     new Date(b.created_at ?? 0) - new Date(a.created_at ?? 0)
   );
 
-  function handleLogout() { logout(); navigate('/login'); }
-
-  const transfersSubItems = [
-    { label: 'Novi transfer',      path: '/transfers/new' },
-    { label: 'Istorija transfera', path: '/transfers/history' },
-  ];
-  const paymentsSubItems = [
-    { label: 'Novo plaćanje',     path: '/client/payments/new' },
-    { label: 'Prenos',            path: '/transfers/new' },
-    { label: 'Primaoci plaćanja', path: '/client/recipients' },
-    { label: 'Pregled plaćanja',  path: '/client/payments' },
-  ];
+  // GSAP entry animacija — ista kao na ostalim klijentskim stranicama
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.th-anim', { opacity: 0, y: 20, duration: 0.45, ease: 'power2.out', stagger: 0.07 });
+    }, pageRef);
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <div className={styles.page}>
-      {/* HEADER */}
-      <header className={styles.header}>
-        <button
-          className={styles.headerBrand}
-          onClick={() => navigate('/dashboard')}
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
-        >
-          <div className={styles.headerIcon}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </div>
-          <span className={styles.headerBrandText}>RAFBank</span>
-        </button>
+    <div ref={pageRef} className={styles.page}>
+      <ClientHeader activeNav="transfers" />
 
-        <nav className={styles.headerNav}>
-          <button className={styles.headerNavBtn} onClick={() => navigate('/client/accounts')}>Računi</button>
-
-          <div className={styles.payDropdownWrap}>
-            <button
-              className={`${styles.headerNavBtn} ${styles.headerNavBtnActive}`}
-              onClick={() => setShowTransfersMenu(p => !p)}
-            >
-              Transferi
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4 }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-            {showTransfersMenu && (
-              <div className={styles.payDropdownMenu}>
-                {transfersSubItems.map(item => (
-                  <button
-                    key={item.label}
-                    className={`${styles.payDropdownItem} ${item.path === '/transfers/history' ? styles.payDropdownItemActive : ''}`}
-                    onClick={() => { navigate(item.path); setShowTransfersMenu(false); }}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button className={styles.headerNavBtn} onClick={() => navigate('/client/exchange')}>Menjačnica</button>
-          <button className={styles.headerNavBtn} onClick={() => navigate('/client/cards')}>Kartice</button>
-          <button className={styles.headerNavBtn} onClick={() => navigate('/client/loans')}>Krediti</button>
-
-          <div className={styles.payDropdownWrap}>
-            <button
-              className={`${styles.headerNavBtn} ${showPaymentsMenu ? styles.headerNavBtnActive : ''}`}
-              onClick={() => setShowPaymentsMenu(p => !p)}
-            >
-              Plaćanja
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4 }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-            {showPaymentsMenu && (
-              <div className={styles.payDropdownMenu}>
-                {paymentsSubItems.map(item => (
-                  <button
-                    key={item.label}
-                    className={styles.payDropdownItem}
-                    onClick={() => { navigate(item.path); setShowPaymentsMenu(false); }}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
-
-        <div className={styles.headerRight}>
-          <button className={styles.headerProfile}>
-            <div className={styles.headerAvatar}>{user?.first_name?.[0]}{user?.last_name?.[0]}</div>
-            <span>{user?.first_name} {user?.last_name}</span>
-          </button>
-          <button className={styles.headerLogout} onClick={handleLogout}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Odjavi se
-          </button>
-        </div>
-      </header>
-
-      {/* SADRŽAJ */}
       <div className={styles.content}>
-        <div className={styles.pageHead}>
+        <div className={`th-anim ${styles.pageHead}`}>
           <button className={styles.backBtn} onClick={() => navigate('/dashboard')}>← Nazad</button>
           <div>
             <h1 className={styles.pageTitle}>Istorija transfera</h1>
@@ -169,7 +72,7 @@ export default function ClientTransferHistory() {
           </div>
         </div>
 
-        <div className={styles.tableCard}>
+        <div className={`th-anim ${styles.tableCard}`}>
           {loading ? (
             <div className={styles.spinnerWrap}><Spinner /></div>
           ) : error ? (
@@ -201,15 +104,9 @@ export default function ClientTransferHistory() {
                   <tbody>
                     {transfers.map((tx) => (
                       <tr key={tx.transfer_id ?? tx.transaction_id}>
-                        <td className={styles.tdDate}>
-                          {formatDateTime(tx.created_at)}
-                        </td>
-                        <td className={styles.tdAccount}>
-                          {shortAccount(tx.from_account_number)}
-                        </td>
-                        <td className={styles.tdAccount}>
-                          {shortAccount(tx.to_account_number)}
-                        </td>
+                        <td className={styles.tdDate}>{formatDateTime(tx.created_at)}</td>
+                        <td className={styles.tdAccount}>{shortAccount(tx.from_account_number)}</td>
+                        <td className={styles.tdAccount}>{shortAccount(tx.to_account_number)}</td>
                         <td className={styles.debit} style={{ textAlign: 'right' }}>
                           -{formatAmount(tx.initial_amount)}
                         </td>

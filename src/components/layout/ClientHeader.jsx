@@ -1,0 +1,145 @@
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
+import styles from './ClientHeader.module.css';
+
+/**
+ * Zajednički header za sve klijentske stranice.
+ * Props:
+ *  - activeNav: string — koja stavka je aktivna ('transfers' | 'payments' | ...)
+ *  - onProfileClick: () => void — otvara profile modal (opcionalno)
+ */
+export default function ClientHeader({ activeNav, onProfileClick }) {
+  const navigate = useNavigate();
+  const user   = useAuthStore(s => s.user);
+  const logout = useAuthStore(s => s.logout);
+
+  const [showTransfersMenu, setShowTransfersMenu] = useState(false);
+  const [showPaymentsMenu,  setShowPaymentsMenu]  = useState(false);
+
+  const transfersRef = useRef(null);
+  const paymentsRef  = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (transfersRef.current && !transfersRef.current.contains(e.target))
+        setShowTransfersMenu(false);
+      if (paymentsRef.current && !paymentsRef.current.contains(e.target))
+        setShowPaymentsMenu(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function handleLogout() { logout(); navigate('/login'); }
+
+  const transfersSubItems = [
+    { label: 'Novi transfer',      path: '/transfers/new' },
+    { label: 'Istorija transfera', path: '/transfers/history' },
+  ];
+
+  const paymentsSubItems = [
+    { label: 'Novo plaćanje',     path: '/client/payments/new' },
+    { label: 'Prenos',            path: '/transfers/new' },
+    { label: 'Primaoci plaćanja', path: '/client/recipients' },
+    { label: 'Pregled plaćanja',  path: '/client/payments' },
+  ];
+
+  return (
+    <header className={styles.header}>
+      {/* Brand */}
+      <button
+        className={styles.headerBrand}
+        onClick={() => navigate('/dashboard')}
+        style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+      >
+        <div className={styles.headerIcon}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <span className={styles.headerBrandText}>RAFBank</span>
+      </button>
+
+      {/* Nav */}
+      <nav className={styles.headerNav}>
+        <button className={styles.headerNavBtn} onClick={() => navigate('/client/accounts')}>
+          Računi
+        </button>
+
+        {/* Transferi dropdown */}
+        <div className={styles.payDropdownWrap} ref={transfersRef}>
+          <button
+            className={`${styles.headerNavBtn} ${activeNav === 'transfers' ? styles.headerNavBtnActive : ''}`}
+            onClick={() => setShowTransfersMenu(p => !p)}
+          >
+            Transferi
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4 }}>
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          {showTransfersMenu && (
+            <div className={styles.payDropdownMenu}>
+              {transfersSubItems.map(item => (
+                <button
+                  key={item.label}
+                  className={styles.payDropdownItem}
+                  onClick={() => { navigate(item.path); setShowTransfersMenu(false); }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button className={styles.headerNavBtn} onClick={() => navigate('/client/exchange')}>Menjačnica</button>
+        <button className={styles.headerNavBtn} onClick={() => navigate('/client/cards')}>Kartice</button>
+        <button className={styles.headerNavBtn} onClick={() => navigate('/client/loans')}>Krediti</button>
+
+        {/* Plaćanja dropdown */}
+        <div className={styles.payDropdownWrap} ref={paymentsRef}>
+          <button
+            className={`${styles.headerNavBtn} ${activeNav === 'payments' ? styles.headerNavBtnActive : ''}`}
+            onClick={() => setShowPaymentsMenu(p => !p)}
+          >
+            Plaćanja
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4 }}>
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          {showPaymentsMenu && (
+            <div className={styles.payDropdownMenu}>
+              {paymentsSubItems.map(item => (
+                <button
+                  key={item.label}
+                  className={styles.payDropdownItem}
+                  onClick={() => { navigate(item.path); setShowPaymentsMenu(false); }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {/* Right side */}
+      <div className={styles.headerRight}>
+        <button className={styles.headerProfile} onClick={onProfileClick}>
+          <div className={styles.headerAvatar}>{user?.first_name?.[0]}{user?.last_name?.[0]}</div>
+          <span>{user?.first_name} {user?.last_name}</span>
+        </button>
+        <button className={styles.headerLogout} onClick={handleLogout}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Odjavi se
+        </button>
+      </div>
+    </header>
+  );
+}
