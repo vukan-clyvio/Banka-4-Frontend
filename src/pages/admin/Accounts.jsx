@@ -104,8 +104,11 @@ export default function Accounts() {
         onClose={() => setModalAccount(null)}
         account={modalAccount}
         onAccountUpdated={() => {
-          accountsApi.getAll()
-            .then(res => setAccounts(res.data ?? []))
+          Promise.all([accountsApi.getAll(), exchangeApi.getRates()])
+            .then(([accRes, ratesRes]) => {
+              const rates = Array.isArray(ratesRes?.rates) ? ratesRes.rates : [];
+              setAccounts(accRes.data ?? [], rates);
+            })
             .catch(() => {});
           setModalAccount(null);
         }}
