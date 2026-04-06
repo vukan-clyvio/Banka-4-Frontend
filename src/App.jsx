@@ -140,6 +140,7 @@ export default function App() {
         <Route path="/admin/loans"   element={<ProtectedRoute><EmployeeRoute><LoansPortal   /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/tax" element={<ProtectedRoute><EmployeeRoute><TaxPage /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/admin/actuaries" element={<ProtectedRoute><EmployeeRoute><ActuariesPage /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/securities" element={<ProtectedRoute><EmployeeRoute><ClientSecurities /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/employees" element={
           <ProtectedRoute><EmployeeRoute><PermissionRoute permission="employee.view"><EmployeeList /></PermissionRoute></EmployeeRoute></ProtectedRoute>
         } />

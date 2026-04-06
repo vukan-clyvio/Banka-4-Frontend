@@ -1,14 +1,14 @@
 import { useRef, useLayoutEffect, useState } from 'react';
-import { useNavigate }  from 'react-router-dom';
-import gsap             from 'gsap';
-import { clientApi }    from '../../api/endpoints/client';
-import { exchangeApi }  from '../../api/endpoints/exchange';
+import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
+import { clientApi } from '../../api/endpoints/client';
+import { exchangeApi } from '../../api/endpoints/exchange';
 import { transfersApi } from '../../api/endpoints/transfers';
 import { useAuthStore } from '../../store/authStore';
-import { useFetch }     from '../../hooks/useFetch';
-import Spinner          from '../../components/ui/Spinner';
-import ClientHeader     from '../../components/layout/ClientHeader';
-import styles           from './ClientDashboard.module.css';
+import { useFetch } from '../../hooks/useFetch';
+import Spinner from '../../components/ui/Spinner';
+import ClientHeader from '../../components/layout/ClientHeader';
+import styles from './ClientDashboard.module.css';
 
 function formatAmount(amount, currency = 'RSD') {
   return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount)) + ' ' + currency;
@@ -100,7 +100,7 @@ function AccountSwitcherModal({ accounts, selected, onSelect, onClose }) {
           {accounts.map((acc, i) => (
             <button key={acc.account_number ?? acc.id} className={`${styles.switcherItem} ${selected === i ? styles.switcherItemActive : ''}`} onClick={() => { onSelect(i); onClose(); }}>
               <div className={styles.switcherIcon}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
               </div>
               <div className={styles.switcherInfo}>
                 <div className={styles.switcherName}>{acc.name}</div>
@@ -117,18 +117,18 @@ function AccountSwitcherModal({ accounts, selected, onSelect, onClose }) {
 }
 
 export default function ClientDashboard() {
-  const pageRef  = useRef(null);
+  const pageRef = useRef(null);
   const navigate = useNavigate();
-  const user     = useAuthStore(s => s.user);
+  const user = useAuthStore(s => s.user);
 
-  const [selectedAccount,  setSelectedAccount]  = useState(0);
-  const [calcAmount,       setCalcAmount]       = useState('');
-  const [calcFrom,         setCalcFrom]         = useState('EUR');
-  const [calcResult,       setCalcResult]       = useState('');
-  const [showProfile,      setShowProfile]      = useState(false);
-  const [showSwitcher,     setShowSwitcher]     = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(0);
+  const [calcAmount, setCalcAmount] = useState('');
+  const [calcFrom, setCalcFrom] = useState('EUR');
+  const [calcResult, setCalcResult] = useState('');
+  const [showProfile, setShowProfile] = useState(false);
+  const [showSwitcher, setShowSwitcher] = useState(false);
   const [paymentRecipient, setPaymentRecipient] = useState(null);
-  const [showPayment,      setShowPayment]      = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
 
@@ -136,7 +136,7 @@ export default function ClientDashboard() {
     () => clientApi.getAccounts(clientId),
     [clientId]
   );
-  const accounts    = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
+  const accounts = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
   const activeAccount = accounts[selectedAccount];
 
   const { data: txData, loading: loadingTx } = useFetch(
@@ -167,19 +167,19 @@ export default function ClientDashboard() {
   function handleLogout() { logout(); navigate('/login'); }
 
   const navItems = [
-    { label: 'Računi',     path: '/client/accounts' },
-    { label: 'Transferi',  path: '/client/transfers' },
+    { label: 'Računi', path: '/client/accounts' },
+    { label: 'Transferi', path: '/client/transfers' },
     { label: 'Menjačnica', path: '/client/exchange' },
-    { label: 'Kartice',    path: '/client/cards' },
-    { label: 'Hartije',    path: '/client/securities' },
-    { label: 'Krediti',    path: '/client/loans' },
+    { label: 'Kartice', path: '/client/cards' },
+    { label: 'Hartije', path: '/client/securities' },
+    { label: 'Krediti', path: '/client/loans' },
   ];
 
   const paymentsSubItems = [
-    { label: 'Novo plaćanje',       path: '/client/payments/new' },
-    { label: 'Prenos',              path: '/client/transfers' },
-    { label: 'Primaoci plaćanja',   path: '/client/recipients' },
-    { label: 'Pregled plaćanja',    path: '/client/payments' },
+    { label: 'Novo plaćanje', path: '/client/payments/new' },
+    { label: 'Prenos', path: '/client/transfers' },
+    { label: 'Primaoci plaćanja', path: '/client/recipients' },
+    { label: 'Pregled plaćanja', path: '/client/payments' },
   ];
 
   return (
@@ -204,7 +204,7 @@ export default function ClientDashboard() {
                 {accounts.map((acc, i) => (
                   <div key={acc.account_number ?? acc.id} className={`${styles.accountItem} ${selectedAccount === i ? styles.accountItemActive : ''}`} onClick={() => setSelectedAccount(i)}>
                     <div className={styles.accountIcon}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
                     </div>
                     <div className={styles.accountInfo}>
                       <div className={styles.accountName}>{acc.name}</div>
@@ -312,9 +312,9 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {showProfile  && <ProfileModal user={user} onClose={() => setShowProfile(false)} />}
+      {showProfile && <ProfileModal user={user} onClose={() => setShowProfile(false)} />}
       {showSwitcher && <AccountSwitcherModal accounts={accounts} selected={selectedAccount} onSelect={setSelectedAccount} onClose={() => setShowSwitcher(false)} />}
-      {showPayment  && <PaymentModal recipient={paymentRecipient} accounts={accounts} onClose={() => { setShowPayment(false); setPaymentRecipient(null); }} />}
+      {showPayment && <PaymentModal recipient={paymentRecipient} accounts={accounts} onClose={() => { setShowPayment(false); setPaymentRecipient(null); }} />}
     </div>
   );
 }
