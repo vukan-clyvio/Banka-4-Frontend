@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import styles from './PortfolioTable.module.css';
 
-export default function PortfolioTable({ assets, isAdmin }) {
+export default function PortfolioTable({ assets, isAdmin, onSell }) {
   const navigate = useNavigate();
 
   return (
@@ -32,9 +32,9 @@ export default function PortfolioTable({ assets, isAdmin }) {
               <td>
                 <div className={styles.actionCell}>
                   {/* SELL dugme za sve */}
-                  <button 
+                  <button
                     className={styles.sellBtn}
-                    onClick={() => navigate('/create-order', { state: asset })}
+                    onClick={() => onSell?.(asset)}
                   >
                     SELL
                   </button>

@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore';
 import { portfolioApi } from '../../api/endpoints/portfolio';
 import ClientHeader from '../../components/layout/ClientHeader';
 import PortfolioTable from '../../features/portfolio/PortfolioTable';
+import SellOrderModal from '../../features/portfolio/SellOrderModal';
 import ProfitSummary from '../../features/portfolio/ProfitSummary';
 import TaxSummary from '../../features/portfolio/TaxSummary';
 import Spinner from '../../components/ui/Spinner';
@@ -12,79 +13,70 @@ import styles from './ClientPortfolioPage.module.css';
 
 export default function ClientPortfolioPage() {
   const pageRef = useRef(null);
-  
-  // State usklađen sa strukturom podataka
-  const [portfolio, setPortfolio] = useState({
-    stocks: [],
-    tax: { taxPaid: 0, taxUnpaid: 0 }
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
+
+  const [portfolio, setPortfolio] = useState({ stocks: [], tax: { taxPaid: 0, taxUnpaid: 0 } });
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+  const [sellModal, setSellModal] = useState(null);
+
   const user = useAuthStore(s => s.user);
   const initFromStorage = useAuthStore(s => s.initFromStorage);
 
-  // 1. Inicijalizacija korisnika
   useEffect(() => {
     if (!user) initFromStorage();
   }, [user, initFromStorage]);
 
-  // 2. Učitavanje podataka preko endpointa (Trading API - Port 8082)
   useEffect(() => {
     const loadData = async () => {
       if (!user?.id) return;
-
       try {
         setLoading(true);
         setError(null);
-        
         const clientId = user.client_id ?? user.id;
         const res = await portfolioApi.getClientPortfolio(clientId);
-        
-        // Uzimamo podatke (client.js interceptor bi trebalo da već vraća res.data)
         const rawData = res?.data || res;
         const allAssets = Array.isArray(rawData) ? rawData : (rawData?.assets ?? []);
-
         setPortfolio({
           stocks: allAssets.filter(a => a.type?.toUpperCase() === 'STOCK'),
-          tax: rawData?.tax ?? { taxPaid: 0, taxUnpaid: 0 }
+          tax: rawData?.tax ?? { taxPaid: 0, taxUnpaid: 0 },
         });
       } catch (err) {
-        console.error("Greška pri učitavanju klijentskog portfolija:", err);
-        setError("Nije moguće učitati podatke portfolija.");
+        console.error('Greška pri učitavanju portfolija:', err);
+        setError('Nije moguće učitati podatke portfolija.');
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, [user?.id]);
 
-  // 3. GSAP Animacija
   useLayoutEffect(() => {
     if (!loading && portfolio) {
       const ctx = gsap.context(() => {
-        gsap.from('.page-anim', { 
-          opacity: 0, 
-          y: 20, 
-          duration: 0.4, 
-          stagger: 0.1, 
-          ease: 'power2.out' 
-        });
+        gsap.from('.page-anim', { opacity: 0, y: 20, duration: 0.4, stagger: 0.1, ease: 'power2.out' });
       }, pageRef);
       return () => ctx.revert();
     }
   }, [loading, portfolio]);
+
+  const clientId = user?.client_id ?? user?.id;
 
   if (!user) return null;
 
   return (
     <div ref={pageRef} className={styles.stranica}>
       <ClientHeader activeNav="portfolio" />
-      
+
+      {sellModal && (
+        <SellOrderModal
+          asset={sellModal}
+          clientId={clientId}
+          onClose={() => setSellModal(null)}
+          onSuccess={() => setSellModal(null)}
+        />
+      )}
+
       <main className={styles.sadrzaj}>
-        
-        {/* Header Sekcija */}
         <div className="page-anim">
           <div className={styles.breadcrumb}><span>Moj nalog</span></div>
           <div className={styles.pageHeader}>
@@ -102,33 +94,26 @@ export default function ClientPortfolioPage() {
           <div className={styles.center}><Alert tip="greska" poruka={error} /></div>
         ) : (
           <>
-            {/* Profitna kartica */}
             <div className="page-anim">
               <ProfitSummary assets={portfolio.stocks} />
             </div>
 
-            {/* Tabela sa akcijama */}
             <div className={`page-anim ${styles.tableCard}`}>
               <div className={styles.cardHeader}>
                 <h3>Moje akcije (Stocks)</h3>
               </div>
-              <PortfolioTable 
-                assets={portfolio.stocks} 
-                isAdmin={false} 
+              <PortfolioTable
+                assets={portfolio.stocks}
+                isAdmin={false}
+                onSell={asset => setSellModal(asset)}
               />
             </div>
 
-            {/* Info labela */}
             <div className="page-anim" style={{ marginTop: '32px', paddingBottom: '40px' }}>
-              <div style={{ 
-                backgroundColor: '#f1f5f9', 
-                padding: '16px', 
-                borderRadius: '12px',
-                textAlign: 'center'
-              }}>
+              <div style={{ backgroundColor: '#f1f5f9', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
                 <p style={{ fontSize: '13px', color: '#475569', margin: 0 }}>
-                  💡 <strong>Napomena:</strong> Za prodaju određenih akcija kliknite na dugme <strong>SELL</strong>. 
-                  Sredstva će biti automatski prebačena na vaš primarni račun nakon obrade transakcije.
+                  Za prodaju određenih akcija kliknite na dugme <strong>SELL</strong>.
+                  Sredstva će biti prebačena na vaš račun tek nakon odobrenja.
                 </p>
               </div>
             </div>

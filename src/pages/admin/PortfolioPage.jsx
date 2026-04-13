@@ -8,6 +8,7 @@ import ProfitSummary from '../../features/portfolio/ProfitSummary';
 import TaxSummary from '../../features/portfolio/TaxSummary';
 import OptionsSection from '../../features/portfolio/OptionsSection';
 import { portfolioApi } from '../../api/endpoints/portfolio';
+import SellOrderModal from '../../features/portfolio/SellOrderModal';
 import styles from './PortfolioPage.module.css';
 
 const FAKE_PORTFOLIO_ASSETS = [
@@ -31,6 +32,7 @@ export default function PortfolioPage() {
     tax: { taxPaid: 0, taxUnpaid: 0 }
   });
   const [loading, setLoading] = useState(false);
+  const [sellModal, setSellModal] = useState(null);
 
   useEffect(() => {
     if (!user) initFromStorage();
@@ -90,9 +92,21 @@ export default function PortfolioPage() {
 
   if (!user) return null;
 
+  const clientId = user?.client_id ?? user?.id;
+
   return (
     <div ref={pageRef} className={styles.stranica}>
       <Navbar />
+
+      {sellModal && (
+        <SellOrderModal
+          asset={sellModal}
+          clientId={clientId}
+          isEmployee
+          onClose={() => setSellModal(null)}
+          onSuccess={() => setSellModal(null)}
+        />
+      )}
       <main className={styles.sadrzaj}>
         
         <div className="page-anim">
@@ -115,7 +129,7 @@ export default function PortfolioPage() {
         {/* TABELA 1: Akcije */}
         <div className={`page-anim ${styles.tableCard}`}>
           <div className={styles.cardHeader}><h3>Hartije od vrednosti</h3></div>
-          <PortfolioTable assets={data.stocks} isAdmin={canManageOTC} />
+          <PortfolioTable assets={data.stocks} isAdmin={canManageOTC} onSell={asset => setSellModal(asset)} />
         </div>
 
         {/* TABELA 2: Opcije */}
