@@ -68,12 +68,16 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
   const [error, setError] = useState('');
 
   const clientId = useAuthStore(s => s.user?.client_id ?? s.user?.id);
-  // Zaposleni koriste bankine račune, klijenti koriste svoje lične račune
   const { data: accountsData } = useFetch(
-    () => isEmployee ? accountsApi.getAll() : clientApi.getAccounts(clientId),
+    () => isEmployee ? accountsApi.getAll({ page: 1, page_size: 100 }) : clientApi.getAccounts(clientId),
     [isEmployee, clientId]
   );
-  const accounts = Array.isArray(accountsData) ? accountsData : accountsData?.data ?? [];
+  const allAccounts = Array.isArray(accountsData)
+    ? accountsData
+    : accountsData?.data ?? accountsData?.content ?? [];
+  const accounts = isEmployee
+    ? allAccounts.filter(a => a.AccountType === 'Bank')
+    : allAccounts;
 
   if (!security) return null;
 
@@ -84,7 +88,7 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
   const needsLimit = orderType === 'LIMIT' || orderType === 'STOP_LIMIT';
   const needsStop  = orderType === 'STOP'  || orderType === 'STOP_LIMIT';
 
-  const selectedAccount = accounts.find(a => (a.account_number ?? a.number) === accountNumber);
+  const selectedAccount = accounts.find(a => (a.AccountNumber ?? a.account_number ?? a.accountNumber ?? a.number ?? a.id) === accountNumber);
 
   function handleQtyChange(e) {
     const raw = e.target.value;
@@ -127,7 +131,7 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
 
     // Provera sredstava
     if (selectedAccount) {
-      const balance = selectedAccount.balance ?? selectedAccount.available_balance ?? 0;
+      const balance = selectedAccount.Balance ?? selectedAccount.AvailableBalance ?? selectedAccount.balance ?? selectedAccount.available_balance ?? 0;
       const estimatedTotal = security.price * n;
       if (balance < estimatedTotal) {
         setError(`Nedovoljno sredstava na računu. Stanje: ${balance.toLocaleString('sr-RS', { minimumFractionDigits: 2 })}, potrebno: ${estimatedTotal.toLocaleString('sr-RS', { minimumFractionDigits: 2 })}`);
@@ -336,12 +340,18 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
                 required
               >
                 <option value="">Izaberite račun...</option>
-                {accounts.map(a => (
-                  <option key={a.account_number ?? a.number} value={a.account_number ?? a.number}>
-                    {a.name} — {a.account_number ?? a.number}
-                    {(a.balance != null) ? ` (${a.balance.toLocaleString('sr-RS', { minimumFractionDigits: 2 })})` : ''}
-                  </option>
-                ))}
+                {accounts.map((a, i) => {
+                  const num  = a.AccountNumber ?? a.account_number ?? a.accountNumber ?? a.number ?? a.id ?? '';
+                  const name = a.Name ?? a.name ?? a.owner_name ?? a.ownerName ?? a.owner ?? `Račun ${i + 1}`;
+                  const bal  = a.Balance ?? a.AvailableBalance ?? a.balance ?? a.available_balance ?? a.availableBalance;
+                  const cur  = a.Currency?.Code ?? a.currency ?? '';
+                  return (
+                    <option key={num || i} value={num}>
+                      {name}{num ? ` — ${num}` : ''}
+                      {bal != null ? ` (${Number(bal).toLocaleString('sr-RS', { minimumFractionDigits: 2 })}${cur ? ` ${cur}` : ''})` : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
