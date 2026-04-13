@@ -27,7 +27,7 @@ export async function fetchUserName(userId) {
 
 export const ordersApi = {
   getSupervisorOrders(params = {}) {
-    return tradingApi.get('/orders', { params });
+    return tradingApi.get('/orders', { params: { page: 1, page_size: 100, ...params } });
   },
 
   approveOrder(orderId) {

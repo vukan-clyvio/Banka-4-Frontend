@@ -76,7 +76,7 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
     ? accountsData
     : accountsData?.data ?? accountsData?.content ?? [];
   const accounts = isEmployee
-    ? allAccounts.filter(a => a.AccountType === 'Bank')
+    ? allAccounts.filter(a => (a.account_type ?? a.AccountType)?.toUpperCase() === 'BANK')
     : allAccounts;
 
   if (!security) return null;
@@ -88,7 +88,7 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
   const needsLimit = orderType === 'LIMIT' || orderType === 'STOP_LIMIT';
   const needsStop  = orderType === 'STOP'  || orderType === 'STOP_LIMIT';
 
-  const selectedAccount = accounts.find(a => (a.AccountNumber ?? a.account_number ?? a.accountNumber ?? a.number ?? a.id) === accountNumber);
+  const selectedAccount = accounts.find(a => (a.AccountNumber ?? a.account_number ?? a.accountNumber ?? a.number) === accountNumber);
 
   function handleQtyChange(e) {
     const raw = e.target.value;
@@ -341,7 +341,7 @@ function OrderModal({ security, activeTab, isEmployee, onClose }) {
               >
                 <option value="">Izaberite račun...</option>
                 {accounts.map((a, i) => {
-                  const num  = a.AccountNumber ?? a.account_number ?? a.accountNumber ?? a.number ?? a.id ?? '';
+                  const num  = a.AccountNumber ?? a.account_number ?? a.accountNumber ?? a.number ?? '';
                   const name = a.Name ?? a.name ?? a.owner_name ?? a.ownerName ?? a.owner ?? `Račun ${i + 1}`;
                   const bal  = a.Balance ?? a.AvailableBalance ?? a.balance ?? a.available_balance ?? a.availableBalance;
                   const cur  = a.Currency?.Code ?? a.currency ?? '';
@@ -427,8 +427,6 @@ const securities = Array.isArray(rawData)
   ? rawData
   : rawData?.data ?? [];
 
-//console.log('RAW DATA:', rawData);
-//console.log('SECURITIES:', securities);
 
   const filtered = useMemo(() => applyFilters(securities, filters, search), [securities, filters, search]);
   const sorted   = useMemo(() => applySort(filtered, sortBy, sortDir), [filtered, sortBy, sortDir]);
@@ -464,6 +462,7 @@ const securities = Array.isArray(rawData)
       if (activeTab === 'STOCK')   details = await securitiesApi.getStockById(sec.id);
       if (activeTab === 'FUTURES') details = await securitiesApi.getFuturesById(sec.id);
       if (activeTab === 'FOREX')   details = await securitiesApi.getForexById(sec.id);
+      if (activeTab === 'OPTIONS') details = await securitiesApi.getOptionById(sec.id);
       if (details) setSelectedSec(details);
     } catch {
       // fallback to list data

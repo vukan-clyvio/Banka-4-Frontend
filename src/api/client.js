@@ -28,173 +28,63 @@ api.interceptors.request.use(attachToken);
 bankingApi.interceptors.request.use(attachToken);
 tradingApi.interceptors.request.use(attachToken);
 
-let isRefreshing = false;
-let failedQueue  = [];
+let refreshPromise = null;
 
-function processQueue(error, token) {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) reject(error);
-    else       resolve(token);
-  });
-  failedQueue = [];
+function doRefresh() {
+  if (refreshPromise) return refreshPromise;
+
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken || refreshToken === 'undefined') {
+    useAuthStore.getState().logout();
+    window.location.href = '/login';
+    return Promise.reject(new Error('No refresh token'));
+  }
+
+  refreshPromise = axios
+    .post(`${AUTH_BASE}/auth/refresh`, { refresh_token: refreshToken })
+    .then(res => {
+      const newToken   = res.data.token;
+      const newRefresh = res.data.refresh_token || refreshToken;
+      const currentUser = useAuthStore.getState().user;
+      useAuthStore.getState().setAuth(currentUser, newToken, newRefresh);
+      return newToken;
+    })
+    .catch(err => {
+      useAuthStore.getState().logout();
+      window.location.href = '/login';
+      return Promise.reject(err);
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
 }
 
-// Interceptor for main API (Core/Auth) - Handles standard 401 login logic
-api.interceptors.response.use(
-  res => res.data,
-  async err => {
+function attachRetry(axiosInstance) {
+  return async err => {
     const original = err.config;
-
     if (err.response?.status !== 401 || original._retry) {
       return Promise.reject(err.response?.data ?? err);
     }
-
     const authPaths = ['/login', '/refresh', '/activate', '/reset-password', '/forgot-password', '/register'];
     if (authPaths.some(p => original.url?.includes(p))) {
       return Promise.reject(err.response?.data ?? err);
     }
-
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then(token => {
-        original.headers.Authorization = `Bearer ${token}`;
-        return api(original);
-      });
-    }
-
     original._retry = true;
-    isRefreshing = true;
-
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken || refreshToken === 'undefined') {
-      isRefreshing = false;
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
-      return Promise.reject(err.response?.data ?? err);
-    }
-
     try {
-      const res = await axios.post(`${AUTH_BASE}/auth/refresh`, { refresh_token: refreshToken });
-      const newToken   = res.data.token;
-      const newRefresh = res.data.refresh_token || refreshToken;
-      const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setAuth(currentUser, newToken, newRefresh);
-
-      processQueue(null, newToken);
+      const newToken = await doRefresh();
       original.headers.Authorization = `Bearer ${newToken}`;
-      return api(original);
+      return axiosInstance(original);
     } catch (refreshErr) {
-      processQueue(refreshErr, null);
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
       return Promise.reject(refreshErr);
-    } finally {
-      isRefreshing = false;
     }
-  }
-);
+  };
+}
 
-// Interceptor for Banking API - Same refresh logic but NEVER forces logout on 401
-// unless the REFRESH token call itself fails.
-bankingApi.interceptors.response.use(
-  res => res.data,
-  async err => {
-    const original = err.config;
-
-    if (err.response?.status !== 401 || original._retry) {
-      return Promise.reject(err.response?.data ?? err);
-    }
-
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then(token => {
-        original.headers.Authorization = `Bearer ${token}`;
-        return bankingApi(original);
-      });
-    }
-
-    original._retry = true;
-    isRefreshing = true;
-
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken || refreshToken === 'undefined') {
-      isRefreshing = false;
-      // On bankingApi, if no refresh token, just fail the request, don't kill session
-      return Promise.reject(err.response?.data ?? err);
-    }
-
-    try {
-      const res = await axios.post(`${AUTH_BASE}/auth/refresh`, { refresh_token: refreshToken });
-      const newToken   = res.data.token;
-      const newRefresh = res.data.refresh_token || refreshToken;
-      const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setAuth(currentUser, newToken, newRefresh);
-
-      processQueue(null, newToken);
-      original.headers.Authorization = `Bearer ${newToken}`;
-      return bankingApi(original);
-    } catch (refreshErr) {
-      processQueue(refreshErr, null);
-      // Only now, if refresh itself fails, we logout
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
-      return Promise.reject(refreshErr);
-    } finally {
-      isRefreshing = false;
-    }
-  }
-);
-
-// Interceptor for Trading API - Same refresh logic as bankingApi
-tradingApi.interceptors.response.use(
-  res => res.data,
-  async err => {
-    const original = err.config;
-
-    if (err.response?.status !== 401 || original._retry) {
-      return Promise.reject(err.response?.data ?? err);
-    }
-
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then(token => {
-        original.headers.Authorization = `Bearer ${token}`;
-        return tradingApi(original);
-      });
-    }
-
-    original._retry = true;
-    isRefreshing = true;
-
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken || refreshToken === 'undefined') {
-      isRefreshing = false;
-      return Promise.reject(err.response?.data ?? err);
-    }
-
-    try {
-      const res = await axios.post(`${AUTH_BASE}/auth/refresh`, { refresh_token: refreshToken });
-      const newToken   = res.data.token;
-      const newRefresh = res.data.refresh_token || refreshToken;
-      const currentUser = useAuthStore.getState().user;
-      useAuthStore.getState().setAuth(currentUser, newToken, newRefresh);
-
-      processQueue(null, newToken);
-      original.headers.Authorization = `Bearer ${newToken}`;
-      return tradingApi(original);
-    } catch (refreshErr) {
-      processQueue(refreshErr, null);
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
-      return Promise.reject(refreshErr);
-    } finally {
-      isRefreshing = false;
-    }
-  }
-);
+api.interceptors.response.use(res => res.data, attachRetry(api));
+bankingApi.interceptors.response.use(res => res.data, attachRetry(bankingApi));
+tradingApi.interceptors.response.use(res => res.data, attachRetry(tradingApi));
 
 export default api;
 

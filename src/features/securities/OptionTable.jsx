@@ -77,7 +77,7 @@ export default function OptionTable({ options, currentPrice, canExercise }) {
                 className={`${styles.expiryTab} ${selectedExpiry === g.settlementDate ? styles.expiryActive : ''} ${expired ? styles.expired : ''}`}
                 onClick={() => setSelectedExpiry(g.settlementDate)}
               >
-                {g.settlementDate}
+                {g.settlementDate ? new Date(g.settlementDate).toLocaleDateString('sr-RS') : '—'}
                 <span className={styles.daysLeft}>{expired ? 'Expired' : `${days}d`}</span>
               </button>
             );

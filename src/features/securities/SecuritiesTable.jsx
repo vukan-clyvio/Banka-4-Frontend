@@ -11,6 +11,13 @@ function fmt(n, decimals = 2) {
   return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(n);
 }
 
+function fmtDate(d) {
+  if (!d) return '—';
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return d;
+  return date.toLocaleDateString('sr-RS');
+}
+
 function fmtVol(n) {
   if (n == null) return '—';
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
@@ -124,8 +131,8 @@ export default function SecuritiesTable({
                   <td className={styles.td}>
                     {sec.settlementDate
                       ? new Date(sec.settlementDate) < new Date()
-                        ? <span style={{ color: 'var(--red, #ef4444)', fontWeight: 600 }}>{sec.settlementDate} (istekao)</span>
-                        : sec.settlementDate
+                        ? <span style={{ color: 'var(--red, #ef4444)', fontWeight: 600 }}>{fmtDate(sec.settlementDate)} (istekao)</span>
+                        : fmtDate(sec.settlementDate)
                       : '—'}
                   </td>
                 )}

@@ -98,7 +98,8 @@ export default function SecurityDetails({ security, isEmployee, onAction, onRefr
 
   const { ticker, name, type, exchange, price, change, changePercent,
           currency, bid, ask, volume, maintenanceMargin, initialMarginCost,
-          settlementDate, options } = security;
+          settlementDate, options, strike, optionType, impliedVolatility, openInterest,
+          contractSize, contractUnit, base, quote } = security;
 
   const actionLabel = isEmployee ? 'Kreiraj nalog' : 'Kupi';
 
@@ -188,6 +189,42 @@ export default function SecurityDetails({ security, isEmployee, onAction, onRefr
           <div className={styles.dataCard}>
             <span>Settlement Date</span>
             <strong>{formatDate(settlementDate)}</strong>
+          </div>
+        )}
+        {contractSize != null && (
+          <div className={styles.dataCard}>
+            <span>Contract Size</span>
+            <strong>{contractSize}{contractUnit ? ` ${contractUnit}` : ''}</strong>
+          </div>
+        )}
+        {base && quote && (
+          <div className={styles.dataCard}>
+            <span>Par</span>
+            <strong>{base} / {quote}</strong>
+          </div>
+        )}
+        {strike != null && (
+          <div className={styles.dataCard}>
+            <span>Strike</span>
+            <strong>{fmt(strike)} {currency}</strong>
+          </div>
+        )}
+        {optionType && (
+          <div className={styles.dataCard}>
+            <span>Tip opcije</span>
+            <strong>{optionType}</strong>
+          </div>
+        )}
+        {impliedVolatility != null && (
+          <div className={styles.dataCard}>
+            <span>Impl. Volatility</span>
+            <strong>{fmt(impliedVolatility, 4)}</strong>
+          </div>
+        )}
+        {openInterest != null && (
+          <div className={styles.dataCard}>
+            <span>Open Interest</span>
+            <strong>{new Intl.NumberFormat('sr-RS').format(openInterest)}</strong>
           </div>
         )}
       </section>
