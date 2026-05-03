@@ -123,6 +123,15 @@ export default function Navbar() {
           </NavLink>
           )}
 
+          {(canAccessSupervisorPages || isAgent) && (
+          <NavLink
+            to="/otc"
+            className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+          >
+            OTC
+          </NavLink>
+        )}
+
           {canAccessSupervisorPages && (
           <NavLink
             to="/profit-bank"

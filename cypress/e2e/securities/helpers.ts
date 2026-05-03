@@ -143,6 +143,7 @@ export function fillCommonOrderFields(options: {
 export function submitOrderAndConfirm() {
   cy.contains('button', 'Nastavi').scrollIntoView().click({ force: true });
   cy.contains('h4', 'Potvrda ordera').should('be.visible');
+}
 export type TestUser = {
   id: number;
   first_name: string;
