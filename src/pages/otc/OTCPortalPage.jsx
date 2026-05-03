@@ -5,31 +5,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import Spinner from '../../components/ui/Spinner';
 import OfferModal from './components/OfferModal';
 import Navbar from "../../components/layout/Navbar.jsx";
-// privremeno: mock podaci dok ne povežemo backend
-const MOCK_STOCKS = [
-    {
-        id: '1',
-        security: 'STOCK',
-        name: 'Apple Inc.',
-        symbol: 'AAPL',
-        amount: 120,
-        price: 189.45,
-        lastUpdated: '2026-04-30T10:30:00Z',
-        owner: { firstName: 'Marija', lastName: 'Nikolic', bankName: 'Banka 1' },
-        bankName: 'Banka 1',
-    },
-    {
-        id: '2',
-        security: 'STOCK',
-        name: 'Tesla Inc.',
-        symbol: 'TSLA',
-        amount: 50,
-        price: 172.12,
-        lastUpdated: '2026-04-29T14:10:00Z',
-        owner: { firstName: 'Petar', lastName: 'Ilic', bankName: 'Banka 2' },
-        bankName: 'Banka 2',
-    },
-];
+import { otcApi } from '../../api/endpoints/tax';
 
 function formatDate(iso) {
     try {
@@ -57,15 +33,30 @@ export default function OtcPortalPage() {
     const [selectedStock, setSelectedStock] = useState(null);
 
     useEffect(() => {
-        // privremeno simuliramo fetch
-        setLoading(true);
-        const t = setTimeout(() => {
-            setRows(MOCK_STOCKS);
-            setLoading(false);
-        }, 250);
-        return () => clearTimeout(t);
+        (async () => {
+            setLoading(true);
+            try {
+                const res = await otcApi.getPublic({ page: 1, page_size: 50 });
+                const body = res?.data ?? res;
+                setRows(body?.data ?? []);
+            } finally {
+                setLoading(false);
+            }
+        })();
     }, []);
-
+    async function fetchPublic() {
+        setLoading(true);
+        try {
+            const res = await otcApi.getPublic({ page: 1, page_size: 50 });
+            const body = res?.data ?? res;
+            setRows(body?.data ?? []);
+        } catch (err) {
+            console.error(err);
+            setRows([]);
+        } finally {
+            setLoading(false);
+        }
+    }
     if (!canSeePage) {
         return (
             <div className={styles.wrap}>
@@ -153,10 +144,15 @@ export default function OtcPortalPage() {
                 stock={selectedStock}
                 isSupervisor={isSupervisor}
                 onClose={() => setSelectedStock(null)}
-                onSubmit={async (payload) => {
-                    // TODO: ovde ćemo kasnije pozvati tradingApi endpoint
-                    // za sada samo log
-                    console.log('MAKE OFFER payload:', payload);
+                onSubmit={async (form) => {
+                    await otcApi.createOffer({
+                        asset_ownership_id: selectedStock.asset_ownership_id,
+                        amount: Number(form.volumeOfStock),
+                        price_per_stock: Number(form.priceOffer),
+                        premium: Number(form.premiumOffer),
+                        settlement_date: new Date(form.settlementDateOffer + 'T00:00:00Z').toISOString(),
+                        buyer_account_number: form.buyerAccountNumber,
+                    });
                     setSelectedStock(null);
                 }}
             />
