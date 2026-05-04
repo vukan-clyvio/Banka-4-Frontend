@@ -56,4 +56,4 @@ describe('Scenario 19: Promena perioda na grafiku menja prikazane podatke', () =
         .should('include', 'periodActive');
     });
   });
-});
+}); 
