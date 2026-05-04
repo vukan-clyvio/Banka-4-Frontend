@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { useAuthStore } from '../../store/authStore';
 import { portfolioApi } from '../../api/endpoints/portfolio';
+import { taxApi } from '../../api/endpoints/tax';
 import ClientHeader from '../../components/layout/ClientHeader';
 import PortfolioTable from '../../features/portfolio/PortfolioTable';
 import SellOrderModal from '../../features/portfolio/SellOrderModal';
@@ -14,7 +15,8 @@ import styles from './ClientPortfolioPage.module.css';
 export default function ClientPortfolioPage() {
   const pageRef = useRef(null);
 
-  const [portfolio, setPortfolio] = useState({ stocks: [], tax: { taxPaid: 0, taxUnpaid: 0 } });
+  const [portfolio, setPortfolio] = useState({ stocks: [] });
+  const [totalTax, setTotalTax] = useState(null);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState(null);
   const [sellModal, setSellModal] = useState(null);
@@ -33,13 +35,15 @@ export default function ClientPortfolioPage() {
         setLoading(true);
         setError(null);
         const clientId = user.client_id ?? user.id;
-        const res = await portfolioApi.getClientPortfolio(clientId);
+        const [res, taxRes] = await Promise.all([
+          portfolioApi.getClientPortfolio(clientId),
+          taxApi.getClientTax(clientId),
+        ]);
         const rawData = res?.data || res;
         const allAssets = Array.isArray(rawData) ? rawData : (rawData?.assets ?? []);
-        setPortfolio({
-          stocks: allAssets.filter(a => a.type?.toUpperCase() !== 'OPTION'),
-          tax: rawData?.tax ?? { taxPaid: 0, taxUnpaid: 0 },
-        });
+        setPortfolio({ stocks: allAssets.filter(a => a.type?.toUpperCase() !== 'OPTION') });
+        const taxData = taxRes?.data || taxRes;
+        setTotalTax(taxData?.totalTax ?? 0);
       } catch (err) {
         console.error('Greška pri učitavanju portfolija:', err);
         setError('Nije moguće učitati podatke portfolija.');
@@ -84,7 +88,7 @@ export default function ClientPortfolioPage() {
               <h1 className={styles.pageTitle}>Moj Portfolio</h1>
               <p className={styles.pageDesc}>Pregled vaših akcija i poresko stanje u realnom vremenu.</p>
             </div>
-            {!loading && !error && <TaxSummary stats={portfolio.tax} />}
+            {!loading && !error && <TaxSummary totalTax={totalTax} />}
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import ProfitSummary from '../../features/portfolio/ProfitSummary';
 import TaxSummary from '../../features/portfolio/TaxSummary';
 import OptionsSection from '../../features/portfolio/OptionsSection';
 import { portfolioApi } from '../../api/endpoints/portfolio';
+import { taxApi } from '../../api/endpoints/tax';
 import SellOrderModal from '../../features/portfolio/SellOrderModal';
 import styles from './PortfolioPage.module.css';
 
@@ -19,11 +20,8 @@ export default function PortfolioPage() {
   const initFromStorage = useAuthStore(s => s.initFromStorage);
 
   // --- ISPRAVLJEN STATE (Počinjemo sa praznim podacima) ---
-  const [data, setData] = useState({
-    stocks: [],
-    options: [],
-    tax: { taxPaid: 0, taxUnpaid: 0 }
-  });
+  const [data, setData] = useState({ stocks: [], options: [] });
+  const [totalTax, setTotalTax] = useState(null);
   const [, setLoading] = useState(false);
   const [sellModal, setSellModal] = useState(null);
 
@@ -44,30 +42,29 @@ export default function PortfolioPage() {
 
       try {
         setLoading(true);
-        let res;
-        
-        // Dinamički biramo endpoint: Actuary/Agent ili običan Client
-        if (isAgent) {
-          res = await portfolioApi.getActuaryPortfolio(user.id);
-        } else {
-          res = await portfolioApi.getClientPortfolio(user.id);
-        }
+        const [res, taxRes] = await Promise.all([
+          isAgent
+            ? portfolioApi.getActuaryPortfolio(user.id)
+            : portfolioApi.getClientPortfolio(user.id),
+          isAgent
+            ? taxApi.getActuaryTax(user.id)
+            : taxApi.getClientTax(user.id),
+        ]);
 
-        // Tvoj client.js verovatno već vraća res.data kroz interceptor, 
-        // ali za svaki slučaj radimo proveru formata:
-        const rawData = res?.data || res; 
+        const rawData = res?.data || res;
         const allAssets = Array.isArray(rawData) ? rawData : (rawData?.assets || []);
-        
+
         setData({
           stocks: allAssets.filter(a => a.type?.toUpperCase() !== 'OPTION'),
           options: allAssets.filter(a => a.type?.toUpperCase() === 'OPTION'),
-          tax: rawData?.tax || { taxPaid: 0, taxUnpaid: 0 }
         });
+        const taxData = taxRes?.data || taxRes;
+        setTotalTax(taxData?.totalTax ?? 0);
 
       } catch (err) {
         console.error("API Error na portu 8082:", err);
         // Resetujemo state na prazno u slučaju greške da UI ne bi "pukao"
-        setData({ stocks: [], options: [], tax: { taxPaid: 0, taxUnpaid: 0 } });
+        setData({ stocks: [], options: [] });
       } finally {
         setLoading(false);
       }
@@ -109,8 +106,7 @@ export default function PortfolioPage() {
               <h1 className={styles.pageTitle}>Moj Portfolio</h1>
               <p className={styles.pageDesc}>Pregled akcija i finansijskih instrumenata.</p>
             </div>
-            {/* Koristi data.tax */}
-            <TaxSummary stats={data.tax} />
+            <TaxSummary totalTax={totalTax} />
           </div>
         </div>
 
