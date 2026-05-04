@@ -8,7 +8,7 @@ export const portfolioApi = {
   getActuaryPortfolio: (actId) => api.get(`/actuary/${actId}/assets`),
 
   exerciseOption: (clientId, assetId, accountNumber) =>
-  api.post(`/api/client/${clientId}/options/${assetId}/exercise`, {
+  api.post(`/client/${clientId}/options/${assetId}/exercise`, {
     account_number: accountNumber,
   }),
 

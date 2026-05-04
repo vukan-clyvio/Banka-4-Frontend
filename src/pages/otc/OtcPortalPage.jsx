@@ -7,7 +7,7 @@ import { portfolioApi } from '../../api/endpoints/portfolio';
 import { accountsApi } from '../../api/endpoints/accounts';
 import { otcApi } from '../../api/endpoints/otc';
 import styles from './OtcPortalPage.module.css';
-const USE_MOCK = true;
+
 
 const TAB = {
   AKTIVNE: 'AKTIVNE',
@@ -232,7 +232,7 @@ function SklopljeniUgovori() {
                       ? new Date(contract.settlement_date).toLocaleDateString('sr-RS')
                       : '—'}
                   </td>
-                  <td><strong>—</strong></td> {/* seller info */}
+                  <td>Seller #{contract.seller_id}</td> {/* seller info */}
                   <td className={contract.profit >= 0 ? styles.pos : styles.neg}>
                     {contract.profit >= 0 ? '+' : ''}
                     {Number(contract.profit ?? 0).toLocaleString('sr-RS', { minimumFractionDigits: 2 })} RSD
