@@ -4,12 +4,12 @@ describe('Scenario 19: Promena perioda na grafiku menja prikazane podatke', () =
   beforeEach(() => {
     const stocks = buildStocks();
 
-    cy.intercept('GET', '**/api/listings/stocks*', {
+    cy.intercept({ method: 'GET', pathname: '/api/listings/stocks' }, {
       statusCode: 200,
       body: stocks,
     }).as('getStocks');
 
-    cy.intercept('GET', `**/api/listings/stocks/${stocks[0].listing_id}`, {
+    cy.intercept({ method: 'GET', pathname: `/api/listings/stocks/${stocks[0].listing_id}` }, {
       statusCode: 200,
       body: {
         ...stocks[0],
@@ -30,19 +30,30 @@ describe('Scenario 19: Promena perioda na grafiku menja prikazane podatke', () =
     cy.wait('@getStockDetail');
   });
 
-  it('periodi su vidljivi', () => {
-    cy.contains('button', '1D').should('be.visible');
-    cy.contains('button', '1W').should('be.visible');
-    cy.contains('button', '1M').should('be.visible');
-    cy.contains('button', '1Y').should('be.visible');
-    cy.contains('button', '5Y').should('be.visible');
+  it('1D period je aktivan po defaultu', () => {
+    cy.contains('button', '1D')
+      .invoke('attr', 'class')
+      .should('include', 'periodActive');
   });
 
-  it('korisnik može da menja periode', () => {
+  it('klikom na 1W se menja aktivan period', () => {
     cy.contains('button', '1W').click();
-    cy.contains('button', '1M').click();
-    cy.contains('button', '1Y').click();
-    cy.contains('button', '5Y').click();
-    cy.contains('button', '1D').click();
+
+    cy.contains('button', '1W')
+      .invoke('attr', 'class')
+      .should('include', 'periodActive');
+
+    cy.contains('button', '1D')
+      .invoke('attr', 'class')
+      .should('not.include', 'periodActive');
+  });
+
+  it('svi periodi su dostupni i klikabilni', () => {
+    ['1D', '1W', '1M', '1Y', '5Y'].forEach(period => {
+      cy.contains('button', period).click();
+      cy.contains('button', period)
+        .invoke('attr', 'class')
+        .should('include', 'periodActive');
+    });
   });
 });
