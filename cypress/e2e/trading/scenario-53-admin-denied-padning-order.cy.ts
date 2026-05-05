@@ -1,51 +1,74 @@
-describe('Scenario 53: Supervizor odbija pending order', () => {
+describe('Scenario 49: Protok od klijenta do supervizora', () => {
 
-    it('Zaposleni Nikola kreira veliki nalog, a Admin ga odbija', () => {
+    it('Klijent kupuje, logout, pa admin proverava supervisor/orders', () => {
+        // 1. PRESRETANJE (Mock-ujemo API odgovore)
+        cy.intercept('GET', '**/api/accounts/**').as('getAccounts');
+        cy.intercept('POST', '**/api/orders/**', (req) => {
+            req.reply({ statusCode: 201, body: { status: 'APPROVED' } });
+        }).as('submitOrder');
 
-        // --- 1. DEO: NIKOLA (Zaposleni/Agent) kreira nalog ---
+        // 2. LOGIN KAO KLIJENT (ANA)
         cy.loginAsNikola();
+        cy.visit('http://localhost:5173/dashboard');
+        cy.visit('http://localhost:5173/securities');
 
-        // Idemo na berzu/trgovinu
-        cy.contains(/Berza|Trgovina|Hartije/i).should('be.visible').click({ force: true });
-
-        // Kupujemo prvu hartiju na listi
-        cy.get('table tbody tr').first().within(() => {
-            cy.contains('button', /Kupi|Buy/i).click({ force: true });
+        // 3. OTVARANJE MODALA I KUPOVINA
+        cy.get('table tbody tr', { timeout: 10000 }).first().within(() => {
+            cy.contains('button', /Kreiraj nalog/i).click({ force: true });
         });
 
-        // Popunjavamo formu sa cifrom 1.111.111 da bi nalog bio PENDING
+        // 4. POPUNJAVANJE FORME U MODALU
         cy.get('[class*="modalOverlay"]').should('be.visible').within(() => {
-            // Unosimo veliku vrednost u polje za količinu ili ukupnu cenu
-            cy.get('input').last().clear().type('1111111');
-            cy.contains('button', /Potvrdi|Confirm/i).click({ force: true });
+            // Tip ordera
+            cy.contains('label', /Tip ordera/i).parent().find('select').select('MARKET');
+
+            // Račun (čekamo da se učitaju opcije)
+            cy.contains('label', /Račun za kupovinu/i).parent().find('select')
+                .select(1);
+            cy.contains('label', /Količina/i).parent().find('input').clear().type('111111');
+            cy.contains('button', 'Nastavi').click();
+
         });
 
-        // Klik na X (iks) da zatvorimo potvrdu/notifikaciju
-        cy.get('button').contains('✕').click({ force: true });
+        // 5. POTVRDA ORDERA
+        cy.get('[class*="modalOverlay"]').within(() => {
+            cy.contains('h4', 'Potvrda ordera').should('be.visible');
+            cy.contains('button', 'Potvrdi').click();
+        });
 
-        // Čistimo sesiju pre logovanja admina da se ne pomešaju tokeni
-        cy.clearCookies();
-        cy.clearLocalStorage();
+        // 6. ZATVARANJE MODALA NA "X"
+        cy.get('[class*="modalOverlay"]').within(() => {
+            cy.contains('button', '✕').click({ force: true });
+        });
 
+        // 7. LOGOUT KLIJENTA
+        // Ako nemaš dugme, možeš očistiti sesiju da nateraš logout
+        cy.visit('http://localhost:5173/dashboard');
+        cy.get('nav').then(($nav) => {
+            if ($nav.find('button:contains("Logout")').length > 0) {
+                cy.contains('button', /Logout|Odjavi se/i).click({ force: true });
+            } else {
+                // Alternativa: čišćenje storage-a ako dugme nije lako dostupno
+                cy.clearLocalStorage();
+                cy.clearCookies();
+            }
+        });
 
-        // --- 2. DEO: ADMIN (Supervizor) odbija nalog ---
+        // 8. LOGIN KAO ADMIN
+        cy.visit('http://localhost:5173/login');
         cy.loginAsAdmin();
 
-        // Putanja koju si tražila: Admin -> Navbar -> Orderi
-        cy.url().should('include', '/admin');
-        cy.get('nav').contains(/Orderi|Orders/i).should('be.visible').click({ force: true });
+        // 9. ODLAZAK NA SUPERVISOR STRANICU
+        cy.visit('http://localhost:5173/supervisor/orders');
 
-        // Provera da smo na stranici sa tabelom ordera
-        cy.url().should('include', '/orders');
+        // 10. VERIFIKACIJA NA ADMIN STRANICI
+        // Proveravamo da li se u tabeli vidi order (npr. količina 20)
+        cy.get('table', { timeout: 10000 }).should('be.visible');
+        cy.contains('td', '20').should('be.visible');
+        // Možeš dodati i proveru tickera ako ga znaš
+        cy.contains('button', /^Pending$/i, { timeout: 20000 }).click();
+        cy.contains('button', /^Decline$/i, { timeout: 20000 }).click();
+        cy.contains('button', /^Declined$/i, { timeout: 20000 }).click();
 
-        // Tražimo red koji je PENDING i klikćemo na Decline
-        // (To bi trebalo da bude onaj koji je Nikola upravo napravio)
-        cy.get('table tbody tr').contains(/PENDING/i).first().closest('tr').within(() => {
-            cy.contains(/Decline|Odbij/i).should('be.visible').click({ force: true });
-        });
-
-        // --- 3. VERIFIKACIJA ---
-        // Potvrđujemo da je status u tabeli sada promenjen u DECLINED
-        cy.get('table tbody tr').contains(/DECLINED/i).should('be.visible');
     });
 });

@@ -8,13 +8,13 @@ describe('Scenario 49: Protok od klijenta do supervizora', () => {
         }).as('submitOrder');
 
         // 2. LOGIN KAO KLIJENT (ANA)
-        cy.loginAsClientAna();
+        cy.loginAsNikola();
         cy.visit('http://localhost:5173/dashboard');
-        cy.visit('http://localhost:5173/client/securities');
+        cy.visit('http://localhost:5173/securities');
 
         // 3. OTVARANJE MODALA I KUPOVINA
         cy.get('table tbody tr', { timeout: 10000 }).first().within(() => {
-            cy.contains('button', /Kupi/i).click({ force: true });
+            cy.contains('button', /Kreiraj nalog/i).click({ force: true });
         });
 
         // 4. POPUNJAVANJE FORME U MODALU
@@ -24,14 +24,10 @@ describe('Scenario 49: Protok od klijenta do supervizora', () => {
 
             // Račun (čekamo da se učitaju opcije)
             cy.contains('label', /Račun za kupovinu/i).parent().find('select')
-                .find('option').should('have.length.at.least', 2);
-            cy.contains('label', /Račun za kupovinu/i).parent().find('select').select(1);
-
-            // Količina
-            cy.contains('label', /Količina/i).parent().find('input').clear().type('100001');
-
-            // Prelazak na potvrdu
+                .select(1);
+            cy.contains('label', /Količina/i).parent().find('input').clear().type('111111');
             cy.contains('button', 'Nastavi').click();
+
         });
 
         // 5. POTVRDA ORDERA
@@ -70,5 +66,8 @@ describe('Scenario 49: Protok od klijenta do supervizora', () => {
         cy.get('table', { timeout: 10000 }).should('be.visible');
         cy.contains('td', '20').should('be.visible');
         // Možeš dodati i proveru tickera ako ga znaš
+        cy.contains('button', /^Pending$/i, { timeout: 20000 }).click();
+
+
     });
 });

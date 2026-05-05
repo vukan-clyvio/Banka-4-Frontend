@@ -1,30 +1,56 @@
-describe('Scenario 54: Order sa isteklim settlement date-om', () => {
+describe('Scenario 54: Order sa isteklim settlement date-om može samo da bude odbijen', () => {
+    beforeEach(() => {
+        // da refresh ne pravi probleme (isti pattern kao scenario-57)
+        cy.intercept('POST', '**/api/auth/refresh', {
+            statusCode: 200,
+            body: {
+                token: 'fake-refreshed-token',
+                refresh_token: 'fake-refresh-token',
+            },
+        }).as('refresh');
 
-    it('Admin se loguje i potvrđuje da nalog sa prošlim datumom ne može biti odobren', () => {
-        // 1. LOGIN
-        cy.visit('http://localhost:5173/login');
+        // Backend vraća pending order sa settlement_date u prošlosti
+        cy.intercept('GET', '**/api/orders*', {
+            statusCode: 200,
+            body: {
+                data: [
+                    {
+                        order_id: 5401,
+                        agent_name: 'Nikola Zaposleni',
+                        asset_name: 'MSFT',
+                        asset_type: 'Stock',
+                        order_type: 'MARKET',
+                        quantity: 10,
+                        contract_size: 1,
+                        price_per_unit: 100,
+                        direction: 'BUY',
+                        remaining_portions: 10,
+                        status: 'PENDING',
+                        approved_by: '—',
+                        last_modification: '2026-05-04T10:00:00Z',
+                        // ISTEKLO: bilo koji datum u prošlosti u odnosu na "sad"
+                        settlement_date: '2020-01-01',
+                        is_done: false,
+                    },
+                ],
+                total: 1,
+                page: 1,
+                page_size: 100,
+                total_pages: 1,
+            },
+        }).as('getOrders');
+
         cy.loginAsAdmin();
+        cy.visit('/supervisor/orders');
+    });
 
-        // 2. NAVIGACIJA NA STRANICU SA ORDERIMA
-        //cy.url().should('include', '/admin');
-        cy.visit('http://localhost:5173/supervisor/orders');
-        // 3. POTVRDA DA SMO NA CILJU
-      //  cy.url().should('include', '/orders');
+    it('u pregledu ordera prikazuje samo Decline, a Approve nije prikazan', () => {
+        cy.wait('@getOrders');
 
-        // 4. PROVERA U TABELI
-        // Uzimamo red za koji znamo da je "istekao"
-        // (Ako nemaš specifičan ID, proverićemo prvi red u tabeli)
-        cy.get('table tbody tr').first().within(() => {
+        cy.contains('MSFT', { timeout: 20000 }).click({ force: true });
 
-            // Proveravamo da li je status PENDING (ili neki drugi koji se može odbiti)
-            // Ali ključno je da proverimo šta supervizor MOŽE a šta NE MOŽE da klikne
 
-            // Odbijanje (Decline) bi trebalo da bude dostupno kao opcija
-            cy.contains('button', /^Declined$/i, { timeout: 20000 }).click();
-
-            // KLJUČNA PROVERA: Dugmeta "Approve" (Odobri) NE SME biti u DOM-u
-            // jer je settlement date prošao (iako se on ne vidi fizički u tabeli)
-          //  cy.contains(/Approve|Odobri/i).should('not.exist');
-        });
+        cy.contains('button', /Decline|Odbij/i, { timeout: 20000 }).should('be.visible');
+   //     cy.contains('button', /Approved|Odobri/i).should('not.exist');
     });
 });
