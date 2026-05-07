@@ -235,30 +235,58 @@ export const securitiesApi = {
   },
 
   buy(data) {
+    if (data.fundId) {
+      return api.post('/orders/invest', {
+        fund_id: data.fundId,
+        listing_id: data.listingId,
+        direction: 'BUY',
+        order_type: data.orderType ?? 'MARKET',
+        quantity: data.quantity,
+        all_or_none: data.allOrNone ?? false,
+        margin: data.margin ?? false,
+        limit_value: data.limitValue ?? 0,
+        stop_value: data.stopValue ?? 0,
+      });
+    }
+
     return api.post('/orders', {
       account_number: data.accountNumber,
-      listing_id:     data.listingId,
-      direction:      'BUY',
-      order_type:     data.orderType ?? 'MARKET',
-      quantity:       data.quantity,
-      all_or_none:    data.allOrNone ?? false,
-      margin:         data.margin ?? false,
-      limit_value:    data.limitValue ?? 0,
-      stop_value:     data.stopValue  ?? 0,
+      listing_id: data.listingId,
+      direction: 'BUY',
+      order_type: data.orderType ?? 'MARKET',
+      quantity: data.quantity,
+      all_or_none: data.allOrNone ?? false,
+      margin: data.margin ?? false,
+      limit_value: data.limitValue ?? 0,
+      stop_value: data.stopValue ?? 0,
     });
   },
 
   sell(data) {
+    if (data.fundId) {
+      return api.post('/orders/invest', {
+        fund_id: data.fundId,
+        listing_id: data.listingId,
+        direction: 'SELL',
+        order_type: data.orderType ?? 'MARKET',
+        quantity: data.quantity,
+        all_or_none: data.allOrNone ?? false,
+        margin: data.margin ?? false,
+        limit_value: data.limitValue ?? 0,
+        stop_value: data.stopValue ?? 0,
+      });
+    }
+
     return api.post('/orders', {
       account_number: data.accountNumber,
-      listing_id:     data.listingId,
-      direction:      'SELL',
-      order_type:     data.orderType ?? 'MARKET',
-      quantity:       data.quantity,
-      all_or_none:    data.allOrNone ?? false,
-      margin:         data.margin ?? false,
-      limit_value:    data.limitValue ?? 0,
-      stop_value:     data.stopValue  ?? 0,
+      listing_id: data.listingId,
+      direction: 'SELL',
+      order_type: data.orderType ?? 'MARKET',
+      quantity: data.quantity,
+      all_or_none: data.allOrNone ?? false,
+      margin: data.margin ?? false,
+      limit_value: data.limitValue ?? 0,
+      stop_value: data.stopValue ?? 0,
     });
-  },
+  }
 };

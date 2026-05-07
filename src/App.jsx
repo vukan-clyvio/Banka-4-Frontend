@@ -29,6 +29,7 @@ import LoansPortal     from './pages/admin/LoansPortal';
 import ActuariesPage   from './pages/admin/ActuariesPage';
 import ExchangesPage   from './pages/admin/ExchangesPage';
 import PortfolioPage from './pages/admin/PortfolioPage.jsx';
+import OtcPonudePage from './pages/admin/OtcPonudePage.jsx';
 
 // Client pages
 import ClientDashboard       from './pages/client/ClientDashboard';
@@ -181,6 +182,7 @@ export default function App() {
         <Route path="/exchange/rates"      element={<ProtectedRoute><ClientRoute><RatesList /></ClientRoute></ProtectedRoute>} />
         <Route path="/exchange/calculator" element={<ProtectedRoute><ClientRoute><CurrencyCalculator /></ClientRoute></ProtectedRoute>} />
         <Route path="/portfolio" element={<ProtectedRoute><EmployeeRoute><PortfolioPage /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/otc/ponude" element={<ProtectedRoute><EmployeeRoute><OtcPonudePage /></EmployeeRoute></ProtectedRoute>} />
 
         <Route path="/otc" element={<ProtectedRoute><OtcPortalPage /></ProtectedRoute>}/>
 
