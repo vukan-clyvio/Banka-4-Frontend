@@ -61,6 +61,8 @@ import CurrencyCalculator from './features/exchange/CurrencyCalculator.jsx';
 import SupervisorOrdersPage from './pages/supervisor/SupervisorOrdersPage.jsx';
 import ProfitBankPage from './pages/profit-bank/ProfitBankPage.jsx';
 
+import OtcPortalPage from './pages/otc/OtcPortalPage';
+
 function ProtectedRoute({ children }) {
   const token = useAuthStore(s => s.token);
   if (!token) return <Navigate to="/login" replace />;
@@ -181,6 +183,8 @@ export default function App() {
         <Route path="/exchange/calculator" element={<ProtectedRoute><ClientRoute><CurrencyCalculator /></ClientRoute></ProtectedRoute>} />
         <Route path="/portfolio" element={<ProtectedRoute><EmployeeRoute><PortfolioPage /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/otc/ponude" element={<ProtectedRoute><EmployeeRoute><OtcPonudePage /></EmployeeRoute></ProtectedRoute>} />
+
+        <Route path="/otc" element={<ProtectedRoute><OtcPortalPage /></ProtectedRoute>}/>
 
         {/* INVESTMENT FUNDS ← NOVO */}
         {/* Dostupno klijentima i svim zaposlenima (agentima, supervizorima) */}

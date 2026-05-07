@@ -8,4 +8,10 @@ export const portfolioApi = {
   // GET http://rafsi.davidovic.io:8082/api/actuary/{actId}/assets
   // Returns all currently held asset positions for an actuary
   getActuaryPortfolio: (actId) => api.get(`/actuary/${actId}/assets`),
+
+  exerciseOption: (clientId, assetId, accountNumber) =>
+  api.post(`/client/${clientId}/options/${assetId}/exercise`, {
+    account_number: accountNumber,
+  }),
+
 };
