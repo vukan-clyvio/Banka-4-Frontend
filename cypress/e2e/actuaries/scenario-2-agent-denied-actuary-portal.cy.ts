@@ -2,16 +2,14 @@ import { agentUser, apiUrl, loginAs } from './helpers';
 
 
 describe('Scenario 2: Agent nema pristup portalu za upravljanje aktuarima', () => {
-  it('dobija odbijen pristup i tabela nije dostupna', () => {
-    cy.intercept('GET', `${apiUrl()}/actuaries*`, {
-      statusCode: 403,
-      body: { error: 'Pristup je odbijen.' },
-    }).as('getActuariesDenied');
+  it('dobija odbijen pristup i stranica nije dostupna', () => {
+    cy.intercept('GET', `${apiUrl()}/**`, { statusCode: 200, body: {} }).as('apiCall');
 
     loginAs(agentUser, '/admin/actuaries');
 
-    cy.wait('@getActuariesDenied').its('response.statusCode').should('eq', 403);
-    cy.contains(/odbijen|403|greska|greška/i).should('be.visible');
-    cy.get('table').should('not.exist');
+    cy.location('pathname', { timeout: 10000 }).should('eq', '/dashboard');
+
+    cy.contains('h1', 'Aktuari').should('not.exist');
+    cy.contains('button', 'Promeni limit').should('not.exist');
   });
 });

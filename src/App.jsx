@@ -29,6 +29,7 @@ import LoansPortal     from './pages/admin/LoansPortal';
 import ActuariesPage   from './pages/admin/ActuariesPage';
 import ExchangesPage   from './pages/admin/ExchangesPage';
 import PortfolioPage from './pages/admin/PortfolioPage.jsx';
+import OtcPonudePage from './pages/admin/OtcPonudePage.jsx';
 
 // Client pages
 import ClientDashboard       from './pages/client/ClientDashboard';
@@ -37,11 +38,18 @@ import ClientExchange        from './pages/client/ClientExchange';
 import ClientLoans           from './pages/client/ClientLoans';
 import ClientRecipients      from './pages/client/ClientRecipients';
 import ClientTransfers       from './pages/client/ClientTransfers';
-import ClientTransferHistory from './pages/client/ClientTransferHistory'; // ── NOVO ──
+import ClientTransferHistory from './pages/client/ClientTransferHistory';
 import ClientPaymentOverview from './pages/client/ClientPaymentOverview';
 import NewPayment       from './pages/client/NewPayment';
 import ClientSecurities from './pages/client/ClientSecurities';
 import ClientPortfolioPage from './pages/client/ClientPortfolioPage';
+import ClientFundsPage from './pages/client/ClientFundsPage';
+import FundDetailsPage from './pages/funds/FundDetailsPage';
+
+// Investment funds pages  ← NOVO
+import FundDiscoveryPage from './pages/investmentFunds/FundDiscoveryPage';
+import CreateFundPage    from './pages/investmentFunds/CreateFundPage';
+import FundDetailPage    from './pages/investmentFunds/FundDetailPage';
 
 // Shared
 import NotFound from './pages/NotFound';
@@ -55,8 +63,7 @@ import CurrencyCalculator from './features/exchange/CurrencyCalculator.jsx';
 import SupervisorOrdersPage from './pages/supervisor/SupervisorOrdersPage.jsx';
 import ProfitBankPage from './pages/profit-bank/ProfitBankPage.jsx';
 
-import OtcPortalPage from './pages/otc/OTCPortalPage.jsx';
-
+import OtcPortalPage from './pages/otc/OtcPortalPage';
 
 function ProtectedRoute({ children }) {
   const token = useAuthStore(s => s.token);
@@ -88,6 +95,15 @@ function SupervisorRoute({ children }) {
   return children;
 }
 
+// Wrapper koji dozvoljava i klijentima i zaposlenima  ← NOVO
+function ClientOrEmployeeRoute({ children }) {
+  const identityType = useAuthStore(s => s.user?.identity_type);
+  if (identityType !== 'client' && identityType !== 'employee') {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
 export default function App() {
   const token = useAuthStore(s => s.token);
   const user  = useAuthStore(s => s.user);
@@ -103,7 +119,6 @@ export default function App() {
     if (!user)  return '/login';
     if (user.identity_type === 'client')   return '/dashboard';
     if (user.identity_type === 'employee') return '/admin';
-
     return '/login';
   };
 
@@ -129,7 +144,7 @@ export default function App() {
         <Route path="/client/recipients"   element={<ProtectedRoute><ClientRoute><ClientRecipients /></ClientRoute></ProtectedRoute>} />
         <Route path="/transfers/new"       element={<ProtectedRoute><ClientRoute><CreateTransfer  /></ClientRoute></ProtectedRoute>} />
         <Route path="/transfers/confirm"   element={<ProtectedRoute><ClientRoute><ConfirmTransfer /></ClientRoute></ProtectedRoute>} />
-        <Route path="/client/securities" element={<ProtectedRoute><ClientRoute><ClientSecurities /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/securities"   element={<ProtectedRoute><ClientRoute><ClientSecurities /></ClientRoute></ProtectedRoute>} />
         <Route path="/transfers/history"   element={<ProtectedRoute><ClientRoute><ClientTransferHistory /></ClientRoute></ProtectedRoute>} />
         <Route path="/client/portfolio" element={<ProtectedRoute><ClientRoute><ClientPortfolioPage /></ClientRoute></ProtectedRoute>} />
         <Route
@@ -141,6 +156,9 @@ export default function App() {
               </ProtectedRoute>
             }
         />
+        <Route path="/client/investment-funds" element={<ProtectedRoute><ClientRoute><ClientFundsPage /></ClientRoute></ProtectedRoute>} />
+        <Route path="/client/investment-funds/:id" element={<ProtectedRoute><ClientRoute><FundDetailsPage /></ClientRoute></ProtectedRoute>} />
+
         {/* ADMIN/EMPLOYEE RUTE */}
         <Route path="/admin"       element={<ProtectedRoute><EmployeeRoute><Dashboard      /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/clients"      element={<ProtectedRoute><EmployeeRoute><ClientList    /></EmployeeRoute></ProtectedRoute>} />
@@ -155,7 +173,7 @@ export default function App() {
         <Route path="/admin/clients" element={<ProtectedRoute><EmployeeRoute><ClientsPortal /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/admin/loans"   element={<ProtectedRoute><EmployeeRoute><LoansPortal   /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/tax" element={<ProtectedRoute><EmployeeRoute><TaxPage /></EmployeeRoute></ProtectedRoute>} />
-        <Route path="/admin/actuaries" element={<ProtectedRoute><EmployeeRoute><ActuariesPage /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/admin/actuaries" element={<ProtectedRoute><SupervisorRoute><ActuariesPage /></SupervisorRoute></ProtectedRoute>} />
         <Route path="/admin/exchanges" element={<ProtectedRoute><EmployeeRoute><ExchangesPage /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/securities" element={<ProtectedRoute><EmployeeRoute><ClientSecurities /></EmployeeRoute></ProtectedRoute>} />
         <Route path="/employees" element={
@@ -173,10 +191,51 @@ export default function App() {
         <Route path="/profit-bank" element={
           <ProtectedRoute><SupervisorRoute><ProfitBankPage /></SupervisorRoute></ProtectedRoute>
         } />
+        <Route path="/investment-funds/:id" element={
+          <ProtectedRoute><EmployeeRoute><FundDetailsPage /></EmployeeRoute></ProtectedRoute>
+        } />
 
         <Route path="/exchange/rates"      element={<ProtectedRoute><ClientRoute><RatesList /></ClientRoute></ProtectedRoute>} />
         <Route path="/exchange/calculator" element={<ProtectedRoute><ClientRoute><CurrencyCalculator /></ClientRoute></ProtectedRoute>} />
         <Route path="/portfolio" element={<ProtectedRoute><EmployeeRoute><PortfolioPage /></EmployeeRoute></ProtectedRoute>} />
+        <Route path="/otc/ponude" element={<ProtectedRoute><EmployeeRoute><OtcPonudePage /></EmployeeRoute></ProtectedRoute>} />
+
+        <Route path="/otc" element={<ProtectedRoute><OtcPortalPage /></ProtectedRoute>}/>
+
+        {/* INVESTMENT FUNDS ← NOVO */}
+        {/* Dostupno klijentima i svim zaposlenima (agentima, supervizorima) */}
+        <Route
+          path="/investment-funds"
+          element={
+            <ProtectedRoute>
+              <ClientOrEmployeeRoute>
+                <FundDiscoveryPage />
+              </ClientOrEmployeeRoute>
+            </ProtectedRoute>
+          }
+        />
+        {/* Kreiranje fonda – samo supervizori */}
+        <Route
+          path="/investment-funds/new"
+          element={
+            <ProtectedRoute>
+              <SupervisorRoute>
+                <CreateFundPage />
+              </SupervisorRoute>
+            </ProtectedRoute>
+          }
+        />
+        {/* Detalji fonda */}
+        <Route
+          path="/investment-funds/:fundId"
+          element={
+            <ProtectedRoute>
+              <ClientOrEmployeeRoute>
+                <FundDetailPage />
+              </ClientOrEmployeeRoute>
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<NotFound />} />
 

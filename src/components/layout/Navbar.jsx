@@ -15,9 +15,11 @@ export default function Navbar() {
   const [showMenu,      setShowMenu]      = useState(false);
   const [showPwModal,   setShowPwModal]   = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showOtcMenu,   setShowOtcMenu]   = useState(false);
 
   const menuRef  = useRef(null);
   const adminRef = useRef(null);
+  const otcRef   = useRef(null);
 
   const { isSupervisor } = usePermissions();
   const canAccessSupervisorPages = Boolean(isSupervisor); 
@@ -26,8 +28,9 @@ export default function Navbar() {
     function handleClick(e) {
       if (menuRef.current  && !menuRef.current.contains(e.target))  setShowMenu(false);
       if (adminRef.current && !adminRef.current.contains(e.target)) setShowAdminMenu(false);
+      if (otcRef.current   && !otcRef.current.contains(e.target))   setShowOtcMenu(false);
     }
-    if (showMenu || showAdminMenu) document.addEventListener('mousedown', handleClick);
+    if (showMenu || showAdminMenu || showOtcMenu) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showMenu, showAdminMenu]);
 
@@ -123,6 +126,15 @@ export default function Navbar() {
           </NavLink>
           )}
 
+          {(canAccessSupervisorPages || isAgent) && (
+          <NavLink
+            to="/otc"
+            className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+          >
+            OTC
+          </NavLink>
+        )}
+
           {canAccessSupervisorPages && (
           <NavLink
             to="/profit-bank"
@@ -150,6 +162,15 @@ export default function Navbar() {
             </NavLink>
           )}
 
+          {(user?.identity_type === 'client' || isAgent || canAccessSupervisorPages) && (
+            <NavLink
+              to="/investment-funds"
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ''}`}
+            >
+              Fondovi
+            </NavLink>
+          )}
+
           {(can('employee.view') || isAgent) && (
             <NavLink
               to="/portfolio"
@@ -167,6 +188,34 @@ export default function Navbar() {
               >
                 OTC Portal
               </NavLink>
+          {isAgent && (
+            <div className={styles.adminDropdownWrap} ref={otcRef}>
+              <button
+                className={`${styles.navLink} ${styles.adminToggle} ${showOtcMenu ? styles.active : ''}`}
+                onClick={() => setShowOtcMenu(prev => !prev)}
+              >
+                OTC Ponude i Ugovori
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 4, opacity: 0.6 }}>
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              {showOtcMenu && (
+                <div className={styles.adminMenu}>
+                  <NavLink
+                    to="/otc/ponude"
+                    className={({ isActive }) => `${styles.adminMenuItem} ${isActive ? styles.adminMenuItemActive : ''}`}
+                    onClick={() => setShowOtcMenu(false)}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                      <rect x="9" y="3" width="6" height="4" rx="1"/>
+                      <path d="M9 12h6M9 16h4"/>
+                    </svg>
+                    Aktivne ponude
+                  </NavLink>
+                </div>
+              )}
+            </div>
           )}
 
           {hasAdminAccess && (
